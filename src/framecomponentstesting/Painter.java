@@ -25,7 +25,7 @@ public class Painter {
     public static boolean underlineTitle = false;
     public static Point selectedLabelLoc = null;
     public static final Color selectedLabelColor = Color.cyan;
-    public static final int selectStrokeThickness = 7;
+    public static final int selectStrokeThickness = 8;
     public static final int underlineStrokeThickness = 5;
 
     public static int titleLetterWidth = 5; //font-based
@@ -34,7 +34,6 @@ public class Painter {
 
     public static void paintTitleUnderline(Graphics panelG, Point titleLabelLoc,
             Dimension titleLabelDim) {
-
         if (underlineTitle) {
             int w = titleLabelDim.width;
             int h = titleLabelDim.height;
@@ -59,15 +58,18 @@ public class Painter {
 
     static void paintLabelSelection(Graphics panelG) {
         if (selectedLabelLoc != null) {
-            int w = SmartLabel.iconsHozSpace;
-            int h = SmartLabel.iconsVerSpace;
-            int x = selectedLabelLoc.x;
-            int y = selectedLabelLoc.y;
+            int w = SmartLabel.iconWidth+selectStrokeThickness;
+            int h = SmartLabel.iconHeight+selectStrokeThickness;
+            int x = selectedLabelLoc.x-selectStrokeThickness/2;
+            int y = selectedLabelLoc.y-selectStrokeThickness/2;
             Graphics2D panelG2 = (Graphics2D) panelG;
             panelG2.setStroke(new BasicStroke(selectStrokeThickness));
             panelG2.setColor(selectedLabelColor);
             panelG2.drawRect(x, y, w, h);
-            //panelG2.drawRoundRect(x, y, w, h, w/2, h/2);
+
+            
+            
+//panelG2.drawRoundRect(x, y, w, h, w/2, h/2);
         }
     }
 

@@ -5,8 +5,11 @@
  */
 package framecomponentstesting;
 
+import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Point;
+import java.awt.RenderingHints;
+import java.awt.Transparency;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -23,11 +26,12 @@ public class FileManager {
 
     public static File currentDir = new File("src/images");
     public static File dataDir = new File("src/data");
-
+    public static String imageIconDir = "src/icons";
     public static final String iconMarker = "#####";
     public static String emptyImgPath = "src/data/emptyDir.jpg";
     public static BufferedImage emptyDirIMG;
     public static int level = 0;
+    public static boolean displayImage = false;
 
     public static void init() {
         try {
@@ -37,10 +41,27 @@ public class FileManager {
         }
     }
 
-    public static void navigateTo(String fileName) {
-        level++;
-        String path = currentDir.getPath();
-        File newDir = new File(path + "/" + fileName);
+    public static void navigateTo(File file) {
+        //fileName of null indicates going up a directory
+        String navigatePath;
+        if (file == null) {
+            //if level = 0 (base), do nothing
+            if (level == 0) {
+                return;
+            }
+            //navigate to parent path
+            navigatePath = currentDir.getParentFile().getPath();
+            level--;
+            displayImage = false;
+            //navigate to user-chosen directory
+        } else {
+            navigatePath = currentDir.getPath() + "/" + file.getName();
+            level++;
+        }
+        File newDir = new File(navigatePath);
+        if (newDir.isFile()) {
+            displayImage = true;
+        }
         currentDir = newDir;
         System.out.println("nagivate To: currentDir = " + currentDir.getPath());
     }
@@ -84,83 +105,88 @@ public class FileManager {
         return new SmartLabel(returnTo);
     }
 
-    public static BufferedImage traverse(File dir) {
-        BufferedImage iconIMG = null;
-        System.out.println("Traversing " + dir.getName());
-        if (dir.isDirectory()) {
-            File iconFile = new File(dir + "\\" + dir.getName() + "icon.tiff");
-            String[] children = dir.list();
-            for (int i = 0; children != null && i < children.length; i++) {
-                String childName = children[i];
-                String childPath = dir.getPath() + "\\" + childName;
-                if (containsSubdirs(new File(childPath))) {
-                    System.out.println("\tContains subdirectories");
-                    iconIMG = traverse(new File(childPath));
-                } else {
-                    if (new File(childPath).list().length == 0) {//dir is empty
-                        System.out.println("\tThe directory is empty, setting img to empty icon");
-                        iconIMG = emptyDirIMG;
-                    } else {
-                        //set image icon to be first image in that dir
-                        File imageFile = new File(childPath);
-                        System.out.println("\tGetting first image in that directory");
-                        try {
-                            iconIMG = ImageIO.read(imageFile);
-                            break;
-                        } catch (IOException ex) {
-                            Logger.getLogger(FileManager.class.getName()).log(Level.SEVERE, null, ex);
-                        }
-                    }
-                } // else:
-                //iconIMG + first file
-            }
-            if (iconIMG != null) {
-                System.out.println("\tWriting iconIMG to file");
-                try {
-                    ImageIO.write(iconIMG, "png", iconFile);
-                } catch (IOException ex) {
-                    Logger.getLogger(FileManager.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
-        }
-        if (dir.isFile()) {
-            if (dir.getName().endsWith(".tiff")) {
-                try {
-                    System.out.println("WHY DID WE GET HERE??");
-                    iconIMG = ImageIO.read(dir);
-                } catch (IOException ex) {
-                    Logger.getLogger(FileManager.class.getName()).log(Level.SEVERE, null, ex);
-                }
-                System.out.println(dir.getAbsolutePath());//change it if needed
-            }
-        }
-
-        return iconIMG;
-    }
-
+//    public static BufferedImage traverse(File dir) {
+//        BufferedImage iconIMG = null;
+//        System.out.println("Traversing " + dir.getName());
+//        if (dir.isDirectory()) {
+//            File iconFile = new File(dir + "\\" + dir.getName() + "icon.tiff");
+//            String[] children = dir.list();
+//            for (int i = 0; children != null && i < children.length; i++) {
+//                String childName = children[i];
+//                String childPath = dir.getPath() + "\\" + childName;
+//                if (containsSubdirs(new File(childPath))) {
+//                    System.out.println("\tContains subdirectories");
+//                    iconIMG = traverse(new File(childPath));
+//                } else {
+//                    if (new File(childPath).list().length == 0) {//dir is empty
+//                        System.out.println("\tThe directory is empty, setting img to empty icon");
+//                        iconIMG = emptyDirIMG;
+//                    } else {
+//                        //set image icon to be first image in that dir
+//                        File imageFile = new File(childPath);
+//                        System.out.println("\tGetting first image in that directory");
+//                        try {
+//                            iconIMG = ImageIO.read(imageFile);
+//                            break;
+//                        } catch (IOException ex) {
+//                            Logger.getLogger(FileManager.class.getName()).log(Level.SEVERE, null, ex);
+//                        }
+//                    }
+//                } // else:
+//                //iconIMG + first file
+//            }
+//            if (iconIMG != null) {
+//                System.out.println("\tWriting iconIMG to file");
+//                try {
+//                    ImageIO.write(iconIMG, "png", iconFile);
+//                } catch (IOException ex) {
+//                    Logger.getLogger(FileManager.class.getName()).log(Level.SEVERE, null, ex);
+//                }
+//            }
+//        }
+//        if (dir.isFile()) {
+//            if (dir.getName().endsWith(".tiff")) {
+//                try {
+//                    System.out.println("WHY DID WE GET HERE??");
+//                    iconIMG = ImageIO.read(dir);
+//                } catch (IOException ex) {
+//                    Logger.getLogger(FileManager.class.getName()).log(Level.SEVERE, null, ex);
+//                }
+//                System.out.println(dir.getAbsolutePath());//change it if needed
+//            }
+//        }
+//
+//        return iconIMG;
+//    }
     public static String createIcons(File dir) {
-        String iconWritePath = dir.getPath() + "\\" + iconMarker + dir.getName();
+        String iconWritePath = imageIconDir + removeExt(dir.getPath().split("src")[1])
+                + "\\" + iconMarker + removeExt(dir.getName());
         String iconReadPath = emptyImgPath;
 
-        //if directory is empty, icon is "empty folder" image
+        // if dir is file, then we need to make a thumnail of it
         if (dir.isFile()) {
-            return dir.getPath();
-        }
-        if (dir.listFiles().length == 0) {
+            iconReadPath = dir.getPath();
+        } //if directory is empty, icon is "empty folder" image
+        else if (dir.listFiles().length == 0) {
             iconReadPath = emptyImgPath;
         } //if directory contains non-directory files (hopefully images), read 1st
         else if (!containsSubdirs(dir)) {
-            String[] fileNames = dir.list();
-            for (int i = 0; i < fileNames.length; i++) {
-                String name = fileNames[i];
+            File[] files = dir.listFiles();
+            boolean foundUsableIcon = false;
+            for (int i = 0; i < files.length; i++) {
+                String name = files[i].getName();
                 //if file isn't icon or empty folder image, use
                 if (!name.contains("iconMarker") && (!name.contains("emptyDir")) && (isImage(name))) {
-                    iconReadPath = dir.getPath() + "\\" + name;
-                    break;
+                    if (!foundUsableIcon) {
+                        iconReadPath = dir.getPath() + "\\" + name;
+                        foundUsableIcon = true;
+                    }
+                    createIcons(files[i]);
                 }
             }
-            //if no normal images were found
+            //create image icon for all 
 
+            //directory contains subdirs, repeat process for all subdirectories
         } else {
             File[] subdirs = dir.listFiles();
             //take first image icon
@@ -182,10 +208,12 @@ public class FileManager {
 
             File iconReadFile = new File(iconReadPath);
             BufferedImage iconImage = ImageIO.read(iconReadFile);
-            //ensure that read and write extensions are same
-            //String extension = getExtension(iconReadPath);
+            BufferedImage resizedImage = getScaledInstance(iconImage);
             File iconWriteFile = new File(iconWritePath + ".png");
-            ImageIO.write(iconImage, "png", iconWriteFile);
+            if (!iconWriteFile.exists()) {
+                iconWriteFile.mkdirs();
+            }
+            ImageIO.write(resizedImage, "png", iconWriteFile);
         } catch (IOException ex) {
             System.out.println("Read: " + iconReadPath);
             System.out.println("Write: " + iconWritePath);
@@ -207,7 +235,7 @@ public class FileManager {
     }
 
     private static boolean isImage(String name) {
-        System.out.println("Is this an image? Name: " + name);
+        //System.out.println("Is this an image? Name: " + name);
         if (name.contains(iconMarker)) {
             return false;
         }
@@ -229,33 +257,118 @@ public class FileManager {
         return ext;
     }
 
-    static ArrayList<SmartLabel> createIconImageLabels() {
-        ArrayList<SmartLabel> labels = new ArrayList<SmartLabel>();
-        int count = 0;
-        for (File file : currentDir.listFiles()) {
-            if (!file.getName().contains(iconMarker)) {
-                int col = count % SmartLabel.iconCols;
-                int row = count / SmartLabel.iconRows;
-                Point colRow = new Point(col, row);
-                SmartLabel sl = new SmartLabel(file, colRow, true);
-                count++;
-                labels.add(sl);
-            }
+    static String getIconPath(File dir) {
+        String dirPath = removeExt(dir.getPath().split("src")[1]);
+        String iconRoot = imageIconDir.split("src")[1];
+        dirPath = dirPath.replace('\\', '/');
+        String iconPath = null;
+        iconPath = iconRoot + dirPath + "/" + fileNameToIconImageName(dir.getName());
+
+        return iconPath;
+    }
+
+    public static BufferedImage getScaledInstance(BufferedImage img) {
+        int targetWidth = SmartLabel.iconWidth + SmartLabel.wBuff;
+        int targetHeight = SmartLabel.iconHeight + SmartLabel.hBuff;
+        Object hint = RenderingHints.VALUE_INTERPOLATION_BILINEAR;
+        boolean higherQuality = true;
+        int type = (img.getTransparency() == Transparency.OPAQUE)
+                ? BufferedImage.TYPE_INT_RGB : BufferedImage.TYPE_INT_ARGB;
+        BufferedImage ret = (BufferedImage) img;
+        int w, h;
+        if (higherQuality) {
+            // Use multi-step technique: start with original size, then
+            // scale down in multiple passes with drawImage()
+            // until the target size is reached
+            w = img.getWidth();
+            h = img.getHeight();
+        } else {
+            // Use one-step technique: scale directly from original
+            // size to target size with a single drawImage() call
+            w = targetWidth;
+            h = targetHeight;
         }
 
-        return labels;
+        do {
+            if (higherQuality && w > targetWidth) {
+                w /= 2;
+                if (w < targetWidth) {
+                    w = targetWidth;
+                }
+            }
+
+            if (higherQuality && h > targetHeight) {
+                h /= 2;
+                if (h < targetHeight) {
+                    h = targetHeight;
+                }
+            }
+
+            BufferedImage tmp = new BufferedImage(w, h, type);
+            Graphics2D g2 = tmp.createGraphics();
+            g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, hint);
+            g2.drawImage(ret, 0, 0, w, h, null);
+            g2.dispose();
+
+            ret = tmp;
+        } while (w != targetWidth || h != targetHeight);
+
+        return ret;
+    }
+
+    static void renameDir(SmartLabel titleLabel, String newText) {
+        newText = newText.toLowerCase();
+
+        File imagesDir = titleLabel.getLinkedFile();
+        String imagesDirPath = imagesDir.getPath();
+        imagesDirPath = imagesDirPath.toLowerCase();
+
+        String newDirPath = imagesDir.getParent() + "\\" + newText;
+        newDirPath = newDirPath.toLowerCase();
+        File newDir = new File(newDirPath);
+
+        imagesDir.renameTo(newDir);
+        titleLabel.setLinkedFile(newDir);
+
+        //rename in src/icons
+        String iconDirPath = imagePathToIconPath(imagesDirPath);
+
+        File iconDir = new File(iconDirPath);
+
+        String newIconDirPath = iconDir.getParent() + "\\" + newText;
+        newIconDirPath = newIconDirPath.toLowerCase();
+        File newIconDir = new File(newIconDirPath);
+        iconDir.renameTo(newIconDir);
+
+        String iconImageName = fileNameToIconImageName(iconDir.getName());
+        String iconImagePath = newIconDir.getPath() + "\\" + iconImageName;
+        File iconImage = new File(iconImagePath);
+        String newIconImagePath = iconImage.getParent() + "\\" + fileNameToIconImageName(newText);
+
+        File newIconImage = new File(newIconImagePath);
+        iconImage.renameTo(newIconImage);
 
     }
 
-    static String getIconPath(File dir) {
-        String dirPath = dir.getPath().split("src")[1];
-        dirPath = dirPath.replace('\\', '/');
-        String iconPath = null;
-        if (dir.isDirectory()) {
-            iconPath = dirPath + "/" + iconMarker + dir.getName() + ".png";
-        } else {
-            iconPath = dirPath;
+    static String imagePathToIconPath(String imagePath) {
+        System.out.println("imagePathToIconPath");
+        String path = imageIconDir + imagePath.split("src")[1];
+        return path;
+    }
+
+    static String fileNameToIconImageName(String fileName) {
+        return iconMarker + removeExt(fileName) + ".png";
+    }
+
+    static String removeExt(String name) {
+        if (name.contains(".")) {
+            name = name.substring(0, name.lastIndexOf('.'));
         }
-        return iconPath;
+        return name;
+
+    }
+
+    static SmartLabel createImageDisplayLabel() {
+        return new SmartLabel(true, currentDir);
     }
 }

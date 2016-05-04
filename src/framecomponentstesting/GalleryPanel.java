@@ -10,6 +10,7 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.Point;
+import java.io.File;
 import java.util.ArrayList;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
@@ -21,20 +22,20 @@ import javax.swing.JOptionPane;
  */
 public class GalleryPanel extends javax.swing.JPanel {
 
-    SmartLabel titleLabel;
-    SmartLabel returnLabel;
-    ArrayList<SmartLabel> iconLabels;
-    ArrayList<SmartLabel> iconImageLabels;
+    SmartLabel titleLabel = null;
+    SmartLabel returnLabel = null;
+    SmartLabel imageDisplayLabel = null;
+    ArrayList<SmartLabel> iconLabels = null;
 
     /**
      * Creates new form GalleryPanel
      */
     public GalleryPanel() {
         initComponents();
-        
+
         createComponents();
         setBackground(Color.white);
-        setPreferredSize(new Dimension(750, 700));
+        setPreferredSize(new Dimension(900, 580));
         //createNewLabel();
         setVisible(true);
     }
@@ -61,6 +62,7 @@ public class GalleryPanel extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        setPreferredSize(new java.awt.Dimension(750, 700));
         addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {
             public void mouseMoved(java.awt.event.MouseEvent evt) {
                 formMouseMoved(evt);
@@ -80,7 +82,7 @@ public class GalleryPanel extends javax.swing.JPanel {
     }//GEN-LAST:event_formMousePressed
 
     private void formMouseMoved(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_formMouseMoved
-         checkIfMouseHoverOnEditableComponent(evt.getX(), evt.getY());
+        checkIfMouseHoverOnPressableComponent(evt.getX(), evt.getY());
     }//GEN-LAST:event_formMouseMoved
 
 
@@ -89,13 +91,14 @@ public class GalleryPanel extends javax.swing.JPanel {
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-//        Painter.paintTitleUnderline(g, titleLabel.getLocation(),
-        //titleLabel.getPreferredSize());
-//        Painter.paintLabelSelection(g);
+
+        Painter.paintTitleUnderline(g, titleLabel.getLocation(),
+                titleLabel.getPreferredSize());
+        Painter.paintLabelSelection(g);
+
 //        g.setColor(Color.white); 
 //        String s = "Art History";
 //        g.drawString(Globals.getTitle(), 20, 20);
-
     }
 
     public void updateLabel(JLabel label, String text) {
@@ -105,83 +108,67 @@ public class GalleryPanel extends javax.swing.JPanel {
 
     }
 
-    private void checkIfMouseHoverOnEditableComponent(int mouseX, int mouseY) {
-        // title labels are editable at level 1+
-        if ((FileManager.level != 0) && mouseOnTitleLabel(mouseX, mouseY) && !Painter.underlineTitle) {
-            Painter.setUnderlineTitle(true);
-            repaint();
-        } else if (Painter.underlineTitle && !mouseOnTitleLabel(mouseX, mouseY)) {
-            Painter.setUnderlineTitle(false);
-            repaint();
-        }
-        Point selectedLabel = SmartLabel.getPointIfMouseOnIconLabel(mouseX, mouseY, iconLabels.size());
-        if ((Painter.selectedLabelLoc == null) && (selectedLabel != null)) {
-            Painter.setSelectedLabel(selectedLabel);
-            repaint();
-
-        } else if (Painter.selectedLabelLoc != null) {
-            if (selectedLabel == null) {
-                Painter.setSelectedLabel(null);
-                repaint();
-
-            } else if ((Painter.selectedLabelLoc.x != selectedLabel.x) || (Painter.selectedLabelLoc.y != selectedLabel.y)) {
-                Painter.setSelectedLabel(selectedLabel);
-                repaint();
-            }
-            //FileManager.checkIfMousePressOnIconLabel(int mouseX, int mouseY);
-        }
+    private void checkIfMouseHoverOnPressableComponent(int mouseX, int mouseY) {
+        checkIfMouseHoverOnTitle(mouseX, mouseY);
+        checkIfMouseHoverOnIcon(mouseX, mouseY);
+        checkIfMouseHoverOnReturn(mouseX, mouseY);
 
     }
 
     private void checkIfMousePressOnPressableComponent(int mouseX, int mouseY) {
-        // title labels are editable at level 1+
-        if ((FileManager.level != 0) && mouseOnTitleLabel(mouseX, mouseY)) {
-            String newText = promptUserForTextEdit(titleLabel);
-            updateLabel(titleLabel, newText);
-            repaint();
-        }
-        String selectedLabel = SmartLabel.getTextIfMouseOnIconLabel(mouseX, mouseY, iconLabels);
-        if (selectedLabel != null) {
-            System.out.println("navigating to selected label");
-            FileManager.navigateTo(selectedLabel);
-            createComponents();
-        } else {
-            System.out.println("no label found");
-        }
+        checkIfMousePressOnTitle(mouseX, mouseY);
+        checkIfMousePressOnIcon(mouseX, mouseY);
+        checkIfMousePressOnReturn(mouseX, mouseY);
 
-    }
-
-    private boolean mouseOnTitleLabel(int mouseX, int mouseY) {
-        int buff = Globals.mouseBuffer;
-        Point titleLoc = titleLabel.getLocation();
-        int titleX1 = (int) titleLoc.getX() - buff;
-        int titleY1 = (int) titleLoc.getY() - buff;
-        Dimension titleDim = titleLabel.getPreferredSize();
-        int titleW = titleDim.width;
-        int titleH = titleDim.height;
-        int titleX2 = titleX1 + titleW + 2 * buff;
-        int titleY2 = titleY1 + titleH + 2 * buff;
-
-        return ((mouseX > titleX1) && (mouseX < titleX2) && (mouseY
-                > titleY1) && (mouseY < titleY2));
     }
 
     private String promptUserForTextEdit(JLabel label) {
         String text = JOptionPane.showInputDialog("Edit Title", label.getText());
-        if (text.equals("")) {
+        if (text==null||text.equals("")) {
             return label.getText();
         }
         return text;
 
     }
 
-    private void createComponents() {
-        removeAll();
+    private void removeComponents() {
+        //removeAll();
+        if (titleLabel != null) {
+            remove(titleLabel);
+        }
+        if (returnLabel != null) {
+            remove(returnLabel);
+        }
+        if (iconLabels != null) {
+            for (SmartLabel iconLabel : iconLabels) {
+                remove(iconLabel);
+            }
+        }
+        if (imageDisplayLabel != null) {
+            remove(imageDisplayLabel);
+        }
+       
+        titleLabel=null;
+        returnLabel=null;
+        iconLabels=null;
+        imageDisplayLabel=null;
+        Painter.selectedLabelLoc= null;
+
         revalidate();
+    }
+
+    private void createComponents() {
+
+        removeComponents();
+
         createReturnLabel();
         createTitleLabel();
-        createIconImageLabels();
-        //createIconLabels();
+        if (FileManager.displayImage) {
+            createImageDisplay();
+        } else {
+            createIconLabels();
+        }
+        revalidate();
         repaint();
         //titleLabel.setFont(null);
         //titleLabel.setForeground(Color.red);
@@ -196,7 +183,7 @@ public class GalleryPanel extends javax.swing.JPanel {
         Image image = icon.getImage(); // transform it 
         Image newimg = image.getScaledInstance(100, 100, java.awt.Image.SCALE_SMOOTH); // scale it the smooth way  
         icon = new ImageIcon(newimg);
-        
+
         JLabel label1 = new JLabel(icon);
         label1.setText("Easy Way");
         label1.setHorizontalTextPosition(JLabel.CENTER);
@@ -266,10 +253,94 @@ public class GalleryPanel extends javax.swing.JPanel {
         }
     }
 
-    private void createIconImageLabels() {
-        iconImageLabels = FileManager.createIconImageLabels();
-        for (SmartLabel l : iconImageLabels) {
-            add(l);
+    private void checkIfMouseHoverOnTitle(int mouseX, int mouseY) {
+// title labels are editable at level 1+
+        if ((FileManager.level != 0) && titleLabel.mouseOnLabel(mouseX, mouseY) && !Painter.underlineTitle) {
+            Painter.setUnderlineTitle(true);
+            repaint();
+        } else if (Painter.underlineTitle && !titleLabel.mouseOnLabel(mouseX, mouseY)) {
+            Painter.setUnderlineTitle(false);
+            repaint();
         }
     }
+
+    private void checkIfMouseHoverOnIcon(int mouseX, int mouseY) {
+        //we don't have any icons, so no worries!
+        if (iconLabels==null) {
+            return;
+        }
+        //otherwise, select or deselect, as needed
+        Point selectedLabel = SmartLabel.getPointIfMouseOnIconLabel(mouseX, mouseY, iconLabels.size());
+        if ((Painter.selectedLabelLoc == null) && (selectedLabel != null)) {
+            Painter.setSelectedLabel(selectedLabel);
+            repaint();
+
+        } else if (Painter.selectedLabelLoc != null) {
+            if (selectedLabel == null) {
+                Painter.setSelectedLabel(null);//null
+                repaint();
+
+            } else if ((Painter.selectedLabelLoc.x != selectedLabel.x) || (Painter.selectedLabelLoc.y != selectedLabel.y)) {
+                Painter.setSelectedLabel(selectedLabel);
+                repaint();
+            }
+            //FileManager.checkIfMousePressOnIconLabel(int mouseX, int mouseY);
+        }
+    }
+
+    private void checkIfMousePressOnTitle(int mouseX, int mouseY) {
+        // title labels are editable at level 1+
+        if ((FileManager.level != 0) && titleLabel.mouseOnLabel(mouseX, mouseY)) {
+            Painter.setUnderlineTitle(false);
+            repaint();
+            String newText = promptUserForTextEdit(titleLabel);
+            updateDirTitle(newText);
+            
+        }
+    }
+
+    private void checkIfMousePressOnIcon(int mouseX, int mouseY) {
+        File selectedLabel = SmartLabel.getFileIfMouseOnIconLabel(mouseX, mouseY, iconLabels);
+        if (selectedLabel != null) {
+            System.out.println("navigating to selected label");
+            navigateTo(selectedLabel);
+        } else {
+            System.out.println("no label found");
+        }
+    }
+
+    private void checkIfMouseHoverOnReturn(int mouseX, int mouseY) {
+        if (FileManager.level != 0) {
+            if (returnLabel.mouseOnLabel(mouseX, mouseY)) {
+                returnLabel.setForeground(Color.red);
+            } else {
+                returnLabel.setForeground(Color.gray);
+            }
+        }
+    }
+
+    private void checkIfMousePressOnReturn(int mouseX, int mouseY) {
+        if ((FileManager.level != 0) && returnLabel.mouseOnLabel(mouseX, mouseY)) {
+            navigateTo(null);
+        }
+
+    }
+
+    private void navigateTo(File selectedLabel) {
+        FileManager.navigateTo(selectedLabel);
+        createComponents();
+    }
+
+    private void updateDirTitle(String newText) {
+        
+        FileManager.renameDir(titleLabel, newText);
+        updateLabel(titleLabel, newText);
+    }
+
+    private void createImageDisplay() {
+        imageDisplayLabel = FileManager.createImageDisplayLabel();
+        add(imageDisplayLabel);
+        
+    }
+
 }

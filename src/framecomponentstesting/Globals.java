@@ -10,7 +10,6 @@ package framecomponentstesting;
  * @author Alisa
  */
 public class Globals {
-    public static final int mouseBuffer = 10;
     
 
     public static String databaseName = "Art History";
