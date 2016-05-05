@@ -58,8 +58,8 @@ public class Painter {
 
     static void paintLabelSelection(Graphics panelG) {
         if (selectedLabelLoc != null) {
-            int w = SmartLabel.iconWidth+selectStrokeThickness;
-            int h = SmartLabel.iconHeight+selectStrokeThickness;
+            int w = SmartLabel.iconWidth+selectStrokeThickness+2;
+            int h = SmartLabel.iconHeight+selectStrokeThickness+2;
             int x = selectedLabelLoc.x-selectStrokeThickness/2;
             int y = selectedLabelLoc.y-selectStrokeThickness/2;
             Graphics2D panelG2 = (Graphics2D) panelG;

@@ -25,7 +25,14 @@ public class GalleryPanel extends javax.swing.JPanel {
     SmartLabel titleLabel = null;
     SmartLabel returnLabel = null;
     SmartLabel imageDisplayLabel = null;
+    SmartLabel upLabel = null;
+    SmartLabel downLabel = null;
+    SmartLabel addLabel = null;
     ArrayList<SmartLabel> iconLabels = null;
+    SmartLabel[] functionLabels = {upLabel, downLabel, addLabel};
+
+    public static Dimension panelSize = new Dimension(900, 600);
+    boolean pause = false;
 
     /**
      * Creates new form GalleryPanel
@@ -35,7 +42,7 @@ public class GalleryPanel extends javax.swing.JPanel {
 
         createComponents();
         setBackground(Color.white);
-        setPreferredSize(new Dimension(900, 580));
+        setPreferredSize(panelSize);
         //createNewLabel();
         setVisible(true);
     }
@@ -109,6 +116,9 @@ public class GalleryPanel extends javax.swing.JPanel {
     }
 
     private void checkIfMouseHoverOnPressableComponent(int mouseX, int mouseY) {
+        if (pause) {
+            return;
+        }
         checkIfMouseHoverOnTitle(mouseX, mouseY);
         checkIfMouseHoverOnIcon(mouseX, mouseY);
         checkIfMouseHoverOnReturn(mouseX, mouseY);
@@ -116,6 +126,9 @@ public class GalleryPanel extends javax.swing.JPanel {
     }
 
     private void checkIfMousePressOnPressableComponent(int mouseX, int mouseY) {
+        if (pause) {
+            return;
+        }
         checkIfMousePressOnTitle(mouseX, mouseY);
         checkIfMousePressOnIcon(mouseX, mouseY);
         checkIfMousePressOnReturn(mouseX, mouseY);
@@ -123,8 +136,8 @@ public class GalleryPanel extends javax.swing.JPanel {
     }
 
     private String promptUserForTextEdit(JLabel label) {
-        String text = JOptionPane.showInputDialog("Edit Title", label.getText());
-        if (text==null||text.equals("")) {
+        String text = JOptionPane.showInputDialog("Edit Title", label.getText().toLowerCase());
+        if (text == null || text.equals("")) {
             return label.getText();
         }
         return text;
@@ -147,12 +160,12 @@ public class GalleryPanel extends javax.swing.JPanel {
         if (imageDisplayLabel != null) {
             remove(imageDisplayLabel);
         }
-       
-        titleLabel=null;
-        returnLabel=null;
-        iconLabels=null;
-        imageDisplayLabel=null;
-        Painter.selectedLabelLoc= null;
+
+        titleLabel = null;
+        returnLabel = null;
+        iconLabels = null;
+        imageDisplayLabel = null;
+        Painter.selectedLabelLoc = null;
 
         revalidate();
     }
@@ -167,6 +180,7 @@ public class GalleryPanel extends javax.swing.JPanel {
             createImageDisplay();
         } else {
             createIconLabels();
+            createFunctionLabels();
         }
         revalidate();
         repaint();
@@ -266,7 +280,7 @@ public class GalleryPanel extends javax.swing.JPanel {
 
     private void checkIfMouseHoverOnIcon(int mouseX, int mouseY) {
         //we don't have any icons, so no worries!
-        if (iconLabels==null) {
+        if (iconLabels == null) {
             return;
         }
         //otherwise, select or deselect, as needed
@@ -295,7 +309,7 @@ public class GalleryPanel extends javax.swing.JPanel {
             repaint();
             String newText = promptUserForTextEdit(titleLabel);
             updateDirTitle(newText);
-            
+
         }
     }
 
@@ -332,15 +346,28 @@ public class GalleryPanel extends javax.swing.JPanel {
     }
 
     private void updateDirTitle(String newText) {
-        
-        FileManager.renameDir(titleLabel, newText);
+        //if paint is called before directories are renamed, errors are caused
+        pause = true;
+        pause = !FileManager.renameDir(titleLabel, newText);
+        if (!pause) {
         updateLabel(titleLabel, newText);
+        }
     }
 
     private void createImageDisplay() {
         imageDisplayLabel = FileManager.createImageDisplayLabel();
         add(imageDisplayLabel);
-        
+
+    }
+
+    private void createFunctionLabels() {
+        //label indicies within funcitonLabels must correspond to Smart Label
+        //constants UP_LABEL, DOWN_LABEL, ADD_LABEL
+        for (int i = 0; i < functionLabels.length; i++) {
+            functionLabels[i]=new SmartLabel(i);
+            add(functionLabels[i]);
+            
+        }
     }
 
 }

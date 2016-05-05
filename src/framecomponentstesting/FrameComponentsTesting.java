@@ -19,7 +19,8 @@ public class FrameComponentsTesting {
     public static void main(String[] args) {
 
         //FileManager.init();
-        //FileManager.createIcons(new File("src/images/"));
+        FileManager.createIcons(new File("src/images"),false);
+        //FileManager.createIcons(new File("src/icons/"));
         //System.out.println("f="+SmartLabel.removeExt("f.txt"));
         GalleryFrame gf = new GalleryFrame();
         //
