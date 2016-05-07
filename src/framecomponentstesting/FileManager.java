@@ -13,7 +13,9 @@ import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.Transparency;
 import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.logging.Level;
@@ -29,6 +31,8 @@ import javax.swing.ImageIcon;
 public class FileManager {
 
     public static File currentDir = new File("src/images");
+    public static int numOfFiles = currentDir.listFiles().length;
+
     public static File dataDir = new File("src/data");
     public static String imageIconDir = "src/icons";
     public static final String iconMarker = "#####";
@@ -36,10 +40,13 @@ public class FileManager {
     public static String upArrowPath = "src/data/up.png";
     public static String downArrowPath = "src/data/down.png";
     public static String addArrowPath = "src/data/add.png";
+    public static String whitePath = "src/data/white.png";
     public static BufferedImage emptyDirIMG;
     public static int level = 0;
     public static int page = 0;
     public static boolean displayImage = false;
+
+    public static int lastPage = (int) (currentDir.listFiles().length / SmartLabel.numOfVisibleIcons) + 1;
 
     public static void init() {
         try {
@@ -70,7 +77,9 @@ public class FileManager {
         if (newDir.isFile()) {
             displayImage = true;
         }
-        currentDir = newDir;
+
+        setCurrentDir(newDir);
+
         System.out.println("nagivate To: currentDir = " + currentDir.getPath());
     }
 
@@ -92,14 +101,22 @@ public class FileManager {
 
     static ArrayList<SmartLabel> createIconLabels() {
         ArrayList<SmartLabel> labels = new ArrayList<SmartLabel>();
-        int count = 0;
-        for (File file : currentDir.listFiles()) {
-            if (!file.getName().contains(iconMarker) && isImage(file.getName())) {
-                int col = count % SmartLabel.iconCols;
-                int row = count / SmartLabel.iconRows;
+
+        File[] files = currentDir.listFiles();
+        int indexStart = page * SmartLabel.numOfVisibleIcons;
+        int maxDisplayed = Math.min(files.length - indexStart, SmartLabel.numOfVisibleIcons);
+        int indexStop = indexStart + maxDisplayed;
+        int iconsCount = 0;
+        for (int i = indexStart; i < indexStop; i++) {
+
+            File currFile = files[i];
+            String currFileName = currFile.getName();
+            if (!currFileName.contains(iconMarker) && isImage(currFileName)) {
+                int col = iconsCount % SmartLabel.iconCols;
+                int row = iconsCount / SmartLabel.iconCols;
                 Point colRow = new Point(col, row);
-                SmartLabel sl = new SmartLabel(file, colRow, false);
-                count++;
+                SmartLabel sl = new SmartLabel(currFile, colRow, false);
+                iconsCount++;
                 labels.add(sl);
             }
         }
@@ -173,6 +190,9 @@ public class FileManager {
 
         // if dir is file, then we need to make a thumnail of it
         if (dir.isFile()) {
+            if (!isImage(dir.getName())) {
+                return iconReadPath;
+            }
             iconReadPath = dir.getPath();
         } //if directory is empty, icon is "empty folder" image
         else if (dir.listFiles().length == 0) {
@@ -216,6 +236,9 @@ public class FileManager {
 
             File iconReadFile = new File(iconReadPath);
             BufferedImage iconImage = ImageIO.read(iconReadFile);
+            if (iconImage == null) {
+                System.out.println("Couldn't read image at " + iconReadPath);
+            }
             BufferedImage resizedImage = resizeIcon(iconImage);
             File iconWriteFile = new File(iconWritePath + ".png");
             if (!iconWriteFile.exists()) {
@@ -260,11 +283,11 @@ public class FileManager {
         return false;
     }
 
-    private static String getExtension(String iconReadPath) {
+    private static String getExtension(String path) {
         String ext = "";
-        int i = iconReadPath.lastIndexOf('.');
+        int i = path.lastIndexOf('.');
         if (i > 0) {
-            ext = "." + iconReadPath.substring(i + 1);
+            ext = "." + path.substring(i + 1);
         }
         return ext;
     }
@@ -285,8 +308,7 @@ public class FileManager {
         return new Dimension(targetWidth, targetHeight);
     }
 
-    public static BufferedImage getScaledInstance(BufferedImage img, Dimension target, boolean crop) {
-
+    public static BufferedImage getScaledInstance(BufferedImage img, Dimension target) {
 
         int targetWidth = (int) target.width;
         int targetHeight = (int) target.height;
@@ -333,7 +355,7 @@ public class FileManager {
 
             ret = tmp;
         } while (w != targetWidth || h != targetHeight);
-        
+
         return ret;
     }
 
@@ -428,47 +450,50 @@ public class FileManager {
                 - SmartLabel.iconsTopBuffer * 1.4);
         Dimension targetDim = new Dimension(targetWidth, targetHeight);
         Dimension newSize = getScaledDimensionMax(imageDim, targetDim);
-        bImg = getScaledInstance(bImg, newSize, false);
+        bImg = getScaledInstance(bImg, newSize);
         return new ImageIcon(bImg);
 
     }
 
     public static BufferedImage resizeIcon(BufferedImage img) {
+        if (img == null) {
+            System.out.println("Null img");
+        }
         Dimension imageDim = new Dimension(img.getWidth(), img.getHeight());
-        Dimension targetDim = new Dimension(SmartLabel.iconWidth, SmartLabel.iconHeight);
+        Dimension targetDim = getIconTargetDim();
+        //Dimension targetDim = new Dimension(SmartLabel.iconWidth, SmartLabel.iconHeight);
         Dimension newSize = getScaledDimensionMin(imageDim, targetDim);
-        BufferedImage resizedImg = getScaledInstance(img, newSize, true);
+        BufferedImage resizedImg = getScaledInstance(img, newSize);
         Rectangle rect = new Rectangle(0, 0, targetDim.width, targetDim.height);
         BufferedImage cropImg = cropImage(resizedImg, rect);
-        
+
         return cropImg;
     }
+
     public static Dimension getScaledDimensionMin(Dimension imgSize, Dimension boundary) {
-         int original_width = imgSize.width;
+        int original_width = imgSize.width;
         int original_height = imgSize.height;
         int bound_width = boundary.width;
         int bound_height = boundary.height;
         int new_width = original_width;
         int new_height = original_height;
-        
-        if (original_width > original_height) {
+
+        if (original_height > original_width) {
+            //scale width to fit
+            new_width = bound_width;
+            //scale height to maintain aspect ratio
+            new_height = (new_width * original_height) / original_width;
+
+        } // first check if we need to scale width
+        else {
             //scale height, maintaining aspect ratio
             new_height = bound_height;
             //scale width to maintain aspect ratio
             new_width = (new_height * original_width) / original_height;
         }
 
-        // first check if we need to scale width
-        else {
-            //scale width to fit
-            new_width = bound_width;
-            //scale height to maintain aspect ratio
-            new_height = (new_width * original_height) / original_width;
-        }
-
         // then check if we need to scale even with the new height
-
-        return new Dimension(new_width, new_height);       
+        return new Dimension(new_width, new_height);
     }
 
     public static Dimension getScaledDimensionMax(Dimension imgSize, Dimension boundary) {
@@ -479,8 +504,6 @@ public class FileManager {
         int bound_height = boundary.height;
         int new_width = original_width;
         int new_height = original_height;
-        
-        
 
         // first check if we need to scale width
         if (original_width > bound_width) {
@@ -501,8 +524,10 @@ public class FileManager {
         return new Dimension(new_width, new_height);
     }
 
-    static ImageIcon createFunctionIconImage(int labelNum) {
+    static ImageIcon createFunctionIconImage(int labelNum, boolean selected, boolean visible) {
         File labelFile = null;
+//        if (!visible) {
+//            labelFile = new File(whitePath);
         if (labelNum == SmartLabel.UP_LABEL) {
             labelFile = new File(upArrowPath);
         } else if (labelNum == SmartLabel.DOWN_LABEL) {
@@ -510,17 +535,26 @@ public class FileManager {
         } else { //label = add
             labelFile = new File(addArrowPath);
         }
-        ImageIcon icon = getImageIcon(labelFile);
-        Image image = icon.getImage(); // transform it 
-        int w;
-        if (labelNum == SmartLabel.ADD_LABEL) {
-            w = SmartLabel.addWidth;
-        } else {
-            w = SmartLabel.arrowWidth;
+        BufferedImage bImg = null;
+        try {
+            bImg = ImageIO.read(labelFile);
+        } catch (IOException ex) {
+            Logger.getLogger(FileManager.class.getName()).log(Level.SEVERE, null, ex);
         }
 
-        Image newimg = image.getScaledInstance(w, w, java.awt.Image.SCALE_SMOOTH); // scale it the smooth way  
-        icon = new ImageIcon(newimg);
+        int w;
+        if (labelNum == SmartLabel.ADD_LABEL) {
+
+            w = SmartLabel.addWidth;
+        } else {
+            if (selected) {
+                w = SmartLabel.arrowSelectedWidth;
+            } else {
+                w = SmartLabel.arrowWidth;
+            }
+        }
+        BufferedImage newimg = getScaledInstance(bImg, new Dimension(w, w)); // scale it the smooth way  
+        ImageIcon icon = new ImageIcon(newimg);
         return icon;
     }
 
@@ -528,7 +562,6 @@ public class FileManager {
         String path = FileManager.getIconPath(file);
         java.net.URL imgURL = SmartLabel.class.getResource(path);
         if (imgURL != null) {
-            System.out.println("Found path!");
             return new ImageIcon(imgURL, "description");
         } else {
             System.err.println("Couldn't find file: " + path);
@@ -550,8 +583,135 @@ public class FileManager {
     }
 
     private static BufferedImage cropImage(BufferedImage src, Rectangle rect) {
+        //ensure that image is not smaller than crop area to avoid
+        //raster format exception
+        if ((src.getWidth() < rect.width)) {
+            rect.setSize(src.getWidth(), rect.height);
+        }
+        if ((src.getHeight() < rect.height)) {
+            rect.setSize(rect.width, src.getHeight());
+        }
         BufferedImage dest = src.getSubimage(0, 0, rect.width, rect.height);
         return dest;
+    }
+
+    public static void renameImageToHtmlInfo(String startDir) {
+        String newName = "";
+        File currDir = new File(startDir);
+        if (currDir.isDirectory()) {
+            for (File file : currDir.listFiles()) {
+                renameImageToHtmlInfo(file.getPath());
+            }
+        } else {
+            String ext = getExtension(currDir.getName());
+            if (ext.equals(".html")) {
+                try {
+                    BufferedReader in = new BufferedReader(new FileReader(currDir.getPath()));
+                    String str;
+                    while ((str = in.readLine()) != null) {
+                        // if (str.contains("Title")) {
+                        newName += str;
+                        //}
+                    }
+                    in.close();
+                    newName = newName.split("Title")[1];
+                    newName = newName.split("<td class=\"column_2\" >\t\t    ")[1];
+                    newName = newName.split("\t</td>")[0];
+                    System.out.println("Title: " + newName);
+
+                    String oldImagePath = removeExt(currDir.getPath()) + ".jpg";
+                    File oldImage = new File(oldImagePath);
+                    if (oldImage.exists()) {
+                        String newImagePath = oldImage.getParent() + "\\" + newName + ".jpg";
+                        File newImage = new File(newImagePath);
+                        oldImage.renameTo(newImage);
+                    }
+
+                } catch (IOException e) {
+                    System.out.println("Couldn't read file " + currDir.getPath());
+                }
+
+            }
+        }
+
+    }
+
+    public static String getImgInfo(File linkedFile) {
+        String returnMe = "No info";
+
+        BufferedImage img = null;
+        try {
+
+            img = ImageIO.read(linkedFile);
+            String dim = img.getWidth() + " x " + img.getHeight() + " pixels";
+            String size = "" + fileSizeToString(linkedFile.length());
+            returnMe = "Original Info: " + dim + ", " + size;
+
+        } catch (IOException ex) {
+            Logger.getLogger(FileManager.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return returnMe;
+    }
+
+    private static String fileSizeToString(long sizeInBytes) {
+        long megabyte = 100000;
+        long kilobyte = 1000;
+        if (sizeInBytes > megabyte) {
+            return "" + (sizeInBytes / megabyte) + " MB";
+        }
+        if (sizeInBytes > kilobyte) {
+            return "" + (sizeInBytes / kilobyte) + " KB";
+        }
+        return "" + sizeInBytes + " B";
+    }
+
+    public static void setPage(int num) {
+        page = num;
+    }
+
+    public static boolean displayUp() {
+        if (!currentDir.isDirectory()) {
+//            System.out.println("Display Up: currentDirectory isn't a directory, so don't display");
+            return false;
+        }
+//        System.out.println("Display Up: if we're on page 0, don't display. Otherwise do: "+(page!=0));
+        return page != 0;
+    }
+
+    public static boolean displayDown() {
+        if (!currentDir.isDirectory()) {
+//            System.out.println("Display Down: currentDirectory isn't a directory, so don't display");
+            return false;
+        }
+//        System.out.println("Display Down: There are this many files in the current directory:"+currentDir.listFiles().length);
+//        System.out.println("Display Down: So many have been displayed so far"+(page+1)*SmartLabel.numOfVisibleIcons);
+//        System.out.println("Display Down?:"+((page+1)*SmartLabel.numOfVisibleIcons < currentDir.listFiles().length));
+        int totalShown = (page + 1) * SmartLabel.numOfVisibleIcons;
+        int totalFilesInDir = currentDir.listFiles().length;
+        return (page + 1) * SmartLabel.numOfVisibleIcons < currentDir.listFiles().length;
+    }
+
+    static boolean getAddFolderEnabled() {
+        return currentDir.listFiles() != null && currentDir.listFiles()[0].isDirectory();
+    }
+
+    static boolean getAddFilesEnabled() {
+        return currentDir.listFiles() != null && currentDir.listFiles()[0].isFile();
+
+    }
+
+   // public static cropNames(File startDir) {
+   // }
+    private static void setCurrentDir(File newDir) {
+        currentDir = newDir;
+        if (currentDir.isDirectory()) {
+            numOfFiles = currentDir.listFiles().length;
+        } else {
+            numOfFiles = 1;
+        }
+        page = 0;
+        lastPage = (int) (currentDir.listFiles().length / SmartLabel.numOfVisibleIcons) + 1;
+
     }
 
 }

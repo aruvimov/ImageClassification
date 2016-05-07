@@ -25,6 +25,8 @@ public class Painter {
     public static boolean underlineTitle = false;
     public static Point selectedLabelLoc = null;
     public static final Color selectedLabelColor = Color.cyan;
+    //public static Color backgroundColor = new Color(102,153,255);
+    public static Color backgroundColor = new Color(0,102,204);
     public static final int selectStrokeThickness = 8;
     public static final int underlineStrokeThickness = 5;
 
@@ -58,19 +60,31 @@ public class Painter {
 
     static void paintLabelSelection(Graphics panelG) {
         if (selectedLabelLoc != null) {
-            int w = SmartLabel.iconWidth+selectStrokeThickness+2;
-            int h = SmartLabel.iconHeight+selectStrokeThickness+2;
-            int x = selectedLabelLoc.x-selectStrokeThickness/2;
-            int y = selectedLabelLoc.y-selectStrokeThickness/2;
+            int w = SmartLabel.iconWidth + selectStrokeThickness + 2;
+            int h = SmartLabel.iconHeight + selectStrokeThickness + 2;
+            int x = selectedLabelLoc.x - selectStrokeThickness / 2;
+            int y = selectedLabelLoc.y - selectStrokeThickness / 2;
             Graphics2D panelG2 = (Graphics2D) panelG;
             panelG2.setStroke(new BasicStroke(selectStrokeThickness));
             panelG2.setColor(selectedLabelColor);
             panelG2.drawRect(x, y, w, h);
 
-            
-            
 //panelG2.drawRoundRect(x, y, w, h, w/2, h/2);
         }
+    }
+
+    static void paintBlueRect(Graphics panelG) {
+        if (FileManager.displayImage){
+            return;
+        }
+        int w = 1000; //larger than screen
+        int h = 1000;//larger than screen
+        int x = 0;
+        int y = (int) (SmartLabel.iconsTopBuffer+SmartLabel.iconsVerSpace*2.2);
+        Graphics2D panelG2 = (Graphics2D) panelG;
+       // panelG2.setStroke(new BasicStroke(selectStrokeThickness));
+        panelG2.setColor(backgroundColor);
+        panelG2.fillRect(x, y, w, h);
     }
 
 }

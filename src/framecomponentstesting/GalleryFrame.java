@@ -10,13 +10,13 @@ package framecomponentstesting;
  * @author Alisa
  */
 public class GalleryFrame extends javax.swing.JFrame {
-
+GalleryPanel gp;
     /**
      * Creates new form galleryFrame
      */
     public GalleryFrame() {
         initComponents();
-        GalleryPanel gp = new GalleryPanel();
+        gp = new GalleryPanel();
         getContentPane().add(gp);
         setContentPane(gp);
         pack();
@@ -34,7 +34,9 @@ public class GalleryFrame extends javax.swing.JFrame {
     private void initComponents() {
 
         jMenuBar1 = new javax.swing.JMenuBar();
-        jMenu1 = new javax.swing.JMenu();
+        fileMenu = new javax.swing.JMenu();
+        addFolderMI = new javax.swing.JMenuItem();
+        addFilesMI = new javax.swing.JMenuItem();
         jMenu2 = new javax.swing.JMenu();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -49,8 +51,27 @@ public class GalleryFrame extends javax.swing.JFrame {
             }
         });
 
-        jMenu1.setText("File");
-        jMenuBar1.add(jMenu1);
+        fileMenu.setText("File");
+        fileMenu.setPreferredSize(new java.awt.Dimension(40, 19));
+        fileMenu.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mousePressed(java.awt.event.MouseEvent evt) {
+                fileMenuMousePressed(evt);
+            }
+        });
+        fileMenu.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                fileMenuActionPerformed(evt);
+            }
+        });
+
+        addFolderMI.setText("Add Folder...");
+        addFolderMI.setPreferredSize(new java.awt.Dimension(130, 22));
+        fileMenu.add(addFolderMI);
+
+        addFilesMI.setText("Add Files...");
+        fileMenu.add(addFilesMI);
+
+        jMenuBar1.add(fileMenu);
 
         jMenu2.setText("Edit");
         jMenuBar1.add(jMenu2);
@@ -82,6 +103,16 @@ public class GalleryFrame extends javax.swing.JFrame {
 //            Painter.setUnderlineTitle(true);
 //        }
     }//GEN-LAST:event_formMouseMoved
+
+    private void fileMenuActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fileMenuActionPerformed
+        
+    }//GEN-LAST:event_fileMenuActionPerformed
+
+    private void fileMenuMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_fileMenuMousePressed
+        System.out.println("You pressed file menu!");
+        addFolderMI.setEnabled(FileManager.getAddFolderEnabled());
+        addFilesMI.setEnabled(FileManager.getAddFilesEnabled());
+    }//GEN-LAST:event_fileMenuMousePressed
 
     /**
      * @param args the command line arguments
@@ -121,7 +152,9 @@ public class GalleryFrame extends javax.swing.JFrame {
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JMenu jMenu1;
+    private javax.swing.JMenuItem addFilesMI;
+    private javax.swing.JMenuItem addFolderMI;
+    private javax.swing.JMenu fileMenu;
     private javax.swing.JMenu jMenu2;
     private javax.swing.JMenuBar jMenuBar1;
     // End of variables declaration//GEN-END:variables

@@ -18,9 +18,9 @@ public class FrameComponentsTesting {
      */
     public static void main(String[] args) {
 
+        //FileManager.renameImageToHtmlInfo("src\\images\\Art History\\Northern Renaissance");
         //FileManager.init();
-        FileManager.createIcons(new File("src/images"),false);
-        //FileManager.createIcons(new File("src/icons/"));
+       // FileManager.createIcons(new File("src/images/101 objects/animals"),true);
         //System.out.println("f="+SmartLabel.removeExt("f.txt"));
         GalleryFrame gf = new GalleryFrame();
         //

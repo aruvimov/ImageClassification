@@ -5,6 +5,7 @@
  */
 package framecomponentstesting;
 
+import static framecomponentstesting.SmartLabel.arrowLocX;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -12,7 +13,9 @@ import java.awt.Image;
 import java.awt.Point;
 import java.io.File;
 import java.util.ArrayList;
+import javax.swing.Icon;
 import javax.swing.ImageIcon;
+import javax.swing.JColorChooser;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 
@@ -28,8 +31,9 @@ public class GalleryPanel extends javax.swing.JPanel {
     SmartLabel upLabel = null;
     SmartLabel downLabel = null;
     SmartLabel addLabel = null;
+    JLabel pageNumLabel = null;
     ArrayList<SmartLabel> iconLabels = null;
-    SmartLabel[] functionLabels = {upLabel, downLabel, addLabel};
+    SmartLabel[] functionLabels = {upLabel, downLabel};
 
     public static Dimension panelSize = new Dimension(900, 600);
     boolean pause = false;
@@ -102,6 +106,8 @@ public class GalleryPanel extends javax.swing.JPanel {
         Painter.paintTitleUnderline(g, titleLabel.getLocation(),
                 titleLabel.getPreferredSize());
         Painter.paintLabelSelection(g);
+       
+        Painter.paintBlueRect(g);
 
 //        g.setColor(Color.white); 
 //        String s = "Art History";
@@ -122,6 +128,7 @@ public class GalleryPanel extends javax.swing.JPanel {
         checkIfMouseHoverOnTitle(mouseX, mouseY);
         checkIfMouseHoverOnIcon(mouseX, mouseY);
         checkIfMouseHoverOnReturn(mouseX, mouseY);
+        checkIfMouseHoverOnFunction(mouseX, mouseY);
 
     }
 
@@ -132,6 +139,7 @@ public class GalleryPanel extends javax.swing.JPanel {
         checkIfMousePressOnTitle(mouseX, mouseY);
         checkIfMousePressOnIcon(mouseX, mouseY);
         checkIfMousePressOnReturn(mouseX, mouseY);
+        checkIfMousePressOnFunction(mouseX, mouseY);
 
     }
 
@@ -160,6 +168,14 @@ public class GalleryPanel extends javax.swing.JPanel {
         if (imageDisplayLabel != null) {
             remove(imageDisplayLabel);
         }
+        if (upLabel!=null) {
+            remove(upLabel);
+        }
+        if (downLabel!=null) {
+            remove(downLabel);
+        }
+        upLabel = null;
+        downLabel = null;
 
         titleLabel = null;
         returnLabel = null;
@@ -172,8 +188,8 @@ public class GalleryPanel extends javax.swing.JPanel {
 
     private void createComponents() {
 
+        
         removeComponents();
-
         createReturnLabel();
         createTitleLabel();
         if (FileManager.displayImage) {
@@ -181,6 +197,7 @@ public class GalleryPanel extends javax.swing.JPanel {
         } else {
             createIconLabels();
             createFunctionLabels();
+            //createPageNumLabel();
         }
         revalidate();
         repaint();
@@ -350,7 +367,7 @@ public class GalleryPanel extends javax.swing.JPanel {
         pause = true;
         pause = !FileManager.renameDir(titleLabel, newText);
         if (!pause) {
-        updateLabel(titleLabel, newText);
+            updateLabel(titleLabel, newText);
         }
     }
 
@@ -363,11 +380,77 @@ public class GalleryPanel extends javax.swing.JPanel {
     private void createFunctionLabels() {
         //label indicies within funcitonLabels must correspond to Smart Label
         //constants UP_LABEL, DOWN_LABEL, ADD_LABEL
-        for (int i = 0; i < functionLabels.length; i++) {
-            functionLabels[i]=new SmartLabel(i);
-            add(functionLabels[i]);
-            
-        }
+        upLabel = new SmartLabel(SmartLabel.UP_LABEL);
+        downLabel = new SmartLabel(SmartLabel.DOWN_LABEL);
+        add(upLabel);
+        add(downLabel);
     }
+
+    private void checkIfMousePressOnFunction(int mouseX, int mouseY) {
+        if (upLabel==null||downLabel==null) {
+            return;
+        }
+        if (upLabel.isVisible() && upLabel.mouseOnLabel(mouseX, mouseY)) {
+            FileManager.setPage(FileManager.page - 1);
+            upLabel.setSelected(false);
+        } else if (downLabel.isVisible() && downLabel.mouseOnLabel(mouseX, mouseY)) {
+            FileManager.setPage(FileManager.page + 1);
+            downLabel.setSelected(false);
+        } else { //nothing selected
+            return;
+        }
+        createComponents();
+        boolean displayUP = FileManager.displayUp();
+        System.out.println("UP: Visibility before "+upLabel.isVisible()+", Visibility after "+displayUP);
+        boolean displayDOWN = FileManager.displayDown();
+        System.out.println("DOWN: Visibility before "+upLabel.isVisible()+", Visibility after "+displayDOWN);
+        //upLabel.setVisible(displayUP);
+        //downLabel.setVisible(displayDOWN);
+       // repaint();
+        System.out.println("Pg #" + FileManager.page);
+        
+
+    }
+
+    private void checkIfMouseHoverOnFunction(int mouseX, int mouseY) {
+//        
+        if (upLabel == null || downLabel == null) {
+            return;
+        }
+
+        boolean onLabel = upLabel.mouseOnLabel(mouseX, mouseY);
+        if (upLabel.selected && !onLabel) {
+            upLabel.setSelected(false);
+        } else if (onLabel && !upLabel.selected) {
+            upLabel.setSelected(true);
+        }
+        onLabel = downLabel.mouseOnLabel(mouseX, mouseY);
+        if (downLabel.selected && !onLabel) {
+            downLabel.setSelected(false);
+        } else if (onLabel && !downLabel.selected) {
+            downLabel.setSelected(true);
+        }
+
+    }
+
+    //Color chooser:
+//    Color background = JColorChooser.showDialog(null, "Change Button Background",
+//            Painter.backgroundColor);
+//        if (background != null) {
+//       Painter.backgroundColor = background;
+//            System.out.println("Color: "+background.getRed()+" "+background.getGreen()+" "+background.getBlue());
+//       repaint();
+//        }
+
+    private void createPageNumLabel() {
+        pageNumLabel = new JLabel();
+        pageNumLabel.setFont(SmartLabel.smallFont);
+        pageNumLabel.setText(""+FileManager.page+" out of "+FileManager.lastPage);
+        Point loc = new Point(SmartLabel.pageNumLocX, SmartLabel.pageNumLocY);
+        Dimension size = pageNumLabel.getPreferredSize();
+        setBounds(loc.x, loc.y, size.width, size.height);
+        setVisible(FileManager.displayDown()||FileManager.displayUp());
+    }
+
 
 }

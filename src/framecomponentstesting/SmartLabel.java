@@ -11,7 +11,11 @@ import java.awt.Font;
 import java.awt.Image;
 import java.awt.Point;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.imageio.ImageIO;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
@@ -25,14 +29,17 @@ public class SmartLabel extends JLabel {
     //instant variables:
     File linkedFile;
     Point loc;
+    boolean selected=false;
+    int labelNum=-1;
+    
 
-    final int smallFontSize = 16;
+    static final int smallFontSize = 16;
     final int titleFontSize = 48;
     final Font titleFont = new Font("Tw Cen MT Condensed", 1, titleFontSize);
-    final Font smallFont = new Font("Tw Cen MT Condensed", 1, smallFontSize);
+    static final Font smallFont = new Font("Tw Cen MT Condensed", 1, smallFontSize);
 
     //item is shown as selected if mouse is within this distance
-    final int mouseBuffer = 10;
+    final int mouseBuffer = 3;
 
 
 
@@ -42,7 +49,7 @@ public class SmartLabel extends JLabel {
 
     //icon label location variables
     public static final int iconsLeftBuffer = 150;
-    public static final int iconsTopBuffer = 150;
+    public static final int iconsTopBuffer = 140;
     public static final int iconsHozSpace = 150;
     public static final int iconsVerSpace = 150;
     public static final int iconWidth = 100;
@@ -59,20 +66,25 @@ public class SmartLabel extends JLabel {
     
         //label locations
     final int titleLocX = 70;
-    final int titleLocY = 70;
+    final int titleLocY = 60;
     final int returnLocX = 30;
     final int returnLocY = 30;
+    static final int pageNumLocX = iconsLeftBuffer;
+    static final int pageNumLocY =50;
     final static int arrowLocX = (int) (iconsLeftBuffer*.5); 
     final static int upArrowLocY = iconsTopBuffer;
     final static int arrowWidth = 30;
-    final static int downArrowLocY = (int) (iconsTopBuffer+iconsVerSpace*3-arrowWidth*2.5);
+    final static int arrowSelectedWidth = 40;
+    final static int arrowDiff = (int) (arrowSelectedWidth-arrowWidth)/2;
+    final static int downArrowLocY = (int) (iconsTopBuffer+iconsVerSpace*2-arrowWidth*2.5);
     final static int addWidth = 50;
     final static int addLocX = iconsLeftBuffer + 5*iconsHozSpace-2*addWidth;
     final static int addLocY = iconsTopBuffer-2*addWidth;
 
     final Dimension defaultDim = new Dimension(iconsHozSpace, iconsVerSpace);
     public static final int iconCols = 5;
-    public static final int iconRows = 5;
+    public static final int iconRows = 2;
+    public static final int numOfVisibleIcons=iconCols*iconRows;
 
     public SmartLabel(File file, Point colRow, boolean isImage) { //icon labels
         super();
@@ -117,8 +129,8 @@ public class SmartLabel extends JLabel {
         setBounds(loc.x, loc.y, icon.getIconWidth(), icon.getIconHeight() + 2 * hBuff);
         setHorizontalTextPosition(JLabel.CENTER);
         setVerticalTextPosition(JLabel.BOTTOM);
-
-        setText(FileManager.removeExt(linkedFile.getName()));
+        String imgInfo = FileManager.getImgInfo(linkedFile);
+        setText(imgInfo);
     }
 
     public SmartLabel(String returnTo) { //return Label
@@ -133,6 +145,7 @@ public class SmartLabel extends JLabel {
 
     public SmartLabel(int labelNum) { //up, down, add
         super();
+        this.labelNum=labelNum;
         if (labelNum == UP_LABEL) {
             createUpLabel();
         } else if (labelNum == DOWN_LABEL) {
@@ -145,21 +158,28 @@ public class SmartLabel extends JLabel {
 
     void createUpLabel() {
         loc = new Point(arrowLocX, upArrowLocY);
-        Icon icon = FileManager.createFunctionIconImage(UP_LABEL);
+        boolean displayUP = FileManager.displayUp();
+        setVisible(displayUP);
+        System.out.println("Created up label with visibility: "+displayUP);
+        Icon icon = FileManager.createFunctionIconImage(UP_LABEL, selected, isVisible());
         setIcon(icon);
         setBounds(loc.x, loc.y, icon.getIconWidth(), icon.getIconHeight());
+        
+        
     }
 
     private void createDownLabel() {
         loc = new Point(arrowLocX, downArrowLocY);
-        Icon icon = FileManager.createFunctionIconImage(DOWN_LABEL);
+        Icon icon = FileManager.createFunctionIconImage(DOWN_LABEL, selected, isVisible());
         setIcon(icon);
         setBounds(loc.x, loc.y, icon.getIconWidth(), icon.getIconHeight());
+        setVisible(FileManager.displayDown());
+        System.out.println("Created down label with visibility: "+FileManager.displayDown());
     }
 
     private void createAddLabel() {
         loc = new Point(addLocX, addLocY);
-        Icon icon = FileManager.createFunctionIconImage(ADD_LABEL);
+        Icon icon = FileManager.createFunctionIconImage(ADD_LABEL, selected, isVisible());
         setIcon(icon);
         setBounds(loc.x, loc.y, icon.getIconWidth(), icon.getIconHeight());
     }
@@ -189,7 +209,7 @@ public class SmartLabel extends JLabel {
         if ((mouseX > iconsLeftBuffer) && (mouseX < iconsRightBoundary) && (mouseY > iconsTopBuffer) && (mouseY < iconsBottomBoundary)) {
             for (int labI = 0; labI < numOfLabels; labI++) {
                 int col = labI % iconCols;
-                int row = labI / iconRows;
+                int row = labI / iconCols;
                 int leftBoundary = iconsLeftBuffer + iconsHozSpace * col;
                 int rightBoundary = leftBoundary + iconsHozSpace;
                 int topBoundary = iconsTopBuffer + iconsVerSpace * row;
@@ -215,7 +235,7 @@ public class SmartLabel extends JLabel {
         if ((mouseX > iconsLeftBuffer) && (mouseX < iconsRightBoundary) && (mouseY > iconsTopBuffer) && (mouseY < iconsBottomBoundary)) {
             for (int labI = 0; labI < iconLabels.size(); labI++) {
                 int col = labI % iconCols;
-                int row = labI / iconRows;
+                int row = labI / iconCols;
                 int leftBoundary = iconsLeftBuffer + iconsHozSpace * col;
                 int rightBoundary = leftBoundary + iconsHozSpace;
                 int topBoundary = iconsTopBuffer + iconsVerSpace * row;
@@ -259,5 +279,24 @@ public class SmartLabel extends JLabel {
     void setLinkedFile(File newDir) {
         linkedFile = newDir;
     }
+
+    void setSelected(boolean b) {
+        selected = b;
+        if (labelNum<0||!isVisible()) {
+            return;
+        } else {
+            ImageIcon icon = FileManager.createFunctionIconImage(labelNum, selected, isVisible());
+            setIcon(icon);
+            if (selected) {
+               setBounds(loc.x-arrowDiff, loc.y-arrowDiff, icon.getIconWidth(), icon.getIconHeight());
+            }
+            else {
+                setBounds(loc.x, loc.y, icon.getIconWidth(), icon.getIconHeight());
+            }
+    }
+        
+    }
+
+
 
 }
