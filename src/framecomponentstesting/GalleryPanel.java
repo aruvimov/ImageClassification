@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JColorChooser;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 
@@ -25,15 +26,20 @@ import javax.swing.JOptionPane;
  */
 public class GalleryPanel extends javax.swing.JPanel {
 
+    JFrame frame;
     SmartLabel titleLabel = null;
     SmartLabel returnLabel = null;
     SmartLabel imageDisplayLabel = null;
     SmartLabel upLabel = null;
     SmartLabel downLabel = null;
-    SmartLabel addLabel = null;
+    SmartLabel trashLabel = null;
     JLabel pageNumLabel = null;
+    JLabel optionsLabel = null;
     ArrayList<SmartLabel> iconLabels = null;
     SmartLabel[] functionLabels = {upLabel, downLabel};
+    SmartLabel trainLabel = null;
+    SmartLabel testLabel = null;
+    SmartLabel classifyLabel = null;
 
     public static Dimension panelSize = new Dimension(900, 600);
     boolean pause = false;
@@ -41,8 +47,9 @@ public class GalleryPanel extends javax.swing.JPanel {
     /**
      * Creates new form GalleryPanel
      */
-    public GalleryPanel() {
+    public GalleryPanel(JFrame frame) {
         initComponents();
+        frame = this.frame;
 
         createComponents();
         setBackground(Color.white);
@@ -96,7 +103,6 @@ public class GalleryPanel extends javax.swing.JPanel {
         checkIfMouseHoverOnPressableComponent(evt.getX(), evt.getY());
     }//GEN-LAST:event_formMouseMoved
 
-
     // Variables declaration - do not modify//GEN-BEGIN:variables
     // End of variables declaration//GEN-END:variables
     @Override
@@ -106,8 +112,11 @@ public class GalleryPanel extends javax.swing.JPanel {
         Painter.paintTitleUnderline(g, titleLabel.getLocation(),
                 titleLabel.getPreferredSize());
         Painter.paintLabelSelection(g);
-       
+
         Painter.paintBlueRect(g);
+        Painter.paintClassifierBorder(g, trainLabel);
+        Painter.paintClassifierBorder(g, testLabel);
+        Painter.paintClassifierBorder(g, classifyLabel);
 
 //        g.setColor(Color.white); 
 //        String s = "Art History";
@@ -129,7 +138,8 @@ public class GalleryPanel extends javax.swing.JPanel {
         checkIfMouseHoverOnIcon(mouseX, mouseY);
         checkIfMouseHoverOnReturn(mouseX, mouseY);
         checkIfMouseHoverOnFunction(mouseX, mouseY);
-
+        checkIfMouseHoverOnClassifier(mouseX, mouseY);
+        checkIfMouseHoverOnTrash(mouseX, mouseY);
     }
 
     private void checkIfMousePressOnPressableComponent(int mouseX, int mouseY) {
@@ -140,6 +150,7 @@ public class GalleryPanel extends javax.swing.JPanel {
         checkIfMousePressOnIcon(mouseX, mouseY);
         checkIfMousePressOnReturn(mouseX, mouseY);
         checkIfMousePressOnFunction(mouseX, mouseY);
+        checkIfMousePressOnTrash(mouseX, mouseY);
 
     }
 
@@ -152,53 +163,54 @@ public class GalleryPanel extends javax.swing.JPanel {
 
     }
 
+    private void removeLabel(JLabel label) {
+        if (label != null) {
+
+            remove(label);
+            label = null;
+        }
+
+    }
+
     private void removeComponents() {
         //removeAll();
-        if (titleLabel != null) {
-            remove(titleLabel);
-        }
-        if (returnLabel != null) {
-            remove(returnLabel);
+        JLabel[] removeLabels = {titleLabel, returnLabel, imageDisplayLabel,
+            upLabel, downLabel, trashLabel, pageNumLabel, trainLabel, testLabel,
+            classifyLabel, optionsLabel};
+        for (JLabel label : removeLabels) {
+            removeLabel(label);
         }
         if (iconLabels != null) {
             for (SmartLabel iconLabel : iconLabels) {
                 remove(iconLabel);
             }
         }
-        if (imageDisplayLabel != null) {
-            remove(imageDisplayLabel);
-        }
-        if (upLabel!=null) {
-            remove(upLabel);
-        }
-        if (downLabel!=null) {
-            remove(downLabel);
-        }
-        upLabel = null;
-        downLabel = null;
-
-        titleLabel = null;
-        returnLabel = null;
         iconLabels = null;
-        imageDisplayLabel = null;
         Painter.selectedLabelLoc = null;
 
         revalidate();
     }
 
-    private void createComponents() {
+    void createComponents() {
 
-        
         removeComponents();
         createReturnLabel();
         createTitleLabel();
+        createTrashLabel();
+
         if (FileManager.displayImage) {
             createImageDisplay();
         } else {
             createIconLabels();
-            createFunctionLabels();
-            //createPageNumLabel();
+            createArrowLabels();
+            createPageNumLabel();
+            if (FileManager.level > 0) {
+                createClassifierLabels();
+
+            }
+            createOptionsLabel();
         }
+
         revalidate();
         repaint();
         //titleLabel.setFont(null);
@@ -377,17 +389,24 @@ public class GalleryPanel extends javax.swing.JPanel {
 
     }
 
-    private void createFunctionLabels() {
+    private void createArrowLabels() {
         //label indicies within funcitonLabels must correspond to Smart Label
         //constants UP_LABEL, DOWN_LABEL, ADD_LABEL
         upLabel = new SmartLabel(SmartLabel.UP_LABEL);
         downLabel = new SmartLabel(SmartLabel.DOWN_LABEL);
+
         add(upLabel);
         add(downLabel);
+
+    }
+
+    private void createTrashLabel() {
+        trashLabel = new SmartLabel(SmartLabel.TRASH_LABEL);
+        add(trashLabel);
     }
 
     private void checkIfMousePressOnFunction(int mouseX, int mouseY) {
-        if (upLabel==null||downLabel==null) {
+        if (upLabel == null || downLabel == null || trashLabel == null) {
             return;
         }
         if (upLabel.isVisible() && upLabel.mouseOnLabel(mouseX, mouseY)) {
@@ -396,40 +415,31 @@ public class GalleryPanel extends javax.swing.JPanel {
         } else if (downLabel.isVisible() && downLabel.mouseOnLabel(mouseX, mouseY)) {
             FileManager.setPage(FileManager.page + 1);
             downLabel.setSelected(false);
-        } else { //nothing selected
-            return;
         }
         createComponents();
-        boolean displayUP = FileManager.displayUp();
-        System.out.println("UP: Visibility before "+upLabel.isVisible()+", Visibility after "+displayUP);
-        boolean displayDOWN = FileManager.displayDown();
-        System.out.println("DOWN: Visibility before "+upLabel.isVisible()+", Visibility after "+displayDOWN);
-        //upLabel.setVisible(displayUP);
-        //downLabel.setVisible(displayDOWN);
-       // repaint();
-        System.out.println("Pg #" + FileManager.page);
-        
+
+    }
+
+    private void checkIfMousePressOnTrash(int mouseX, int mouseY) {
+        if (trashLabel.isVisible() && trashLabel.mouseOnLabel(mouseX, mouseY)) { //nothing selected
+            int n = JOptionPane.showConfirmDialog(
+                    frame, "Are you sure you would like to delete "
+                    + FileManager.currentDir.getName() + "?",
+                    "Delete",
+                    JOptionPane.YES_NO_OPTION);
+            if (n == JOptionPane.YES_OPTION) {
+                FileManager.deleteCurrentDirectory();
+                trashLabel.setSelected(false);
+                createComponents();
+            }
+        }
 
     }
 
     private void checkIfMouseHoverOnFunction(int mouseX, int mouseY) {
 //        
-        if (upLabel == null || downLabel == null) {
-            return;
-        }
-
-        boolean onLabel = upLabel.mouseOnLabel(mouseX, mouseY);
-        if (upLabel.selected && !onLabel) {
-            upLabel.setSelected(false);
-        } else if (onLabel && !upLabel.selected) {
-            upLabel.setSelected(true);
-        }
-        onLabel = downLabel.mouseOnLabel(mouseX, mouseY);
-        if (downLabel.selected && !onLabel) {
-            downLabel.setSelected(false);
-        } else if (onLabel && !downLabel.selected) {
-            downLabel.setSelected(true);
-        }
+        checkLabelSelection(upLabel, mouseX, mouseY);
+        checkLabelSelection(downLabel, mouseX, mouseY);
 
     }
 
@@ -441,16 +451,77 @@ public class GalleryPanel extends javax.swing.JPanel {
 //            System.out.println("Color: "+background.getRed()+" "+background.getGreen()+" "+background.getBlue());
 //       repaint();
 //        }
-
     private void createPageNumLabel() {
         pageNumLabel = new JLabel();
-        pageNumLabel.setFont(SmartLabel.smallFont);
-        pageNumLabel.setText(""+FileManager.page+" out of "+FileManager.lastPage);
+        pageNumLabel.setText("" + (FileManager.page + 1) + "/" + FileManager.lastPage);
+        pageNumLabel.setForeground(new Color(255, 165, 0));
+        pageNumLabel.setFont(SmartLabel.mediumFont);
         Point loc = new Point(SmartLabel.pageNumLocX, SmartLabel.pageNumLocY);
         Dimension size = pageNumLabel.getPreferredSize();
-        setBounds(loc.x, loc.y, size.width, size.height);
-        setVisible(FileManager.displayDown()||FileManager.displayUp());
+        pageNumLabel.setBounds(loc.x, loc.y, size.width, size.height);
+        pageNumLabel.setVisible(FileManager.displayDown() || FileManager.displayUp());
+        pageNumLabel.setVisible(false);
+        add(pageNumLabel);
     }
 
+    private void createClassifierLabels() {
+        trainLabel = new SmartLabel(SmartLabel.TRAIN_LABEL);
+        add(trainLabel);
+        testLabel = new SmartLabel(SmartLabel.TEST_LABEL);
+        add(testLabel);
+        classifyLabel = new SmartLabel(SmartLabel.CLASSIFY_LABEL);
+        add(classifyLabel);
+    }
+
+    private void checkIfMouseHoverOnClassifier(int mouseX, int mouseY) {
+        boolean change = false;
+        change = change || checkLabelSelection(trainLabel, mouseX, mouseY);
+        change = change || checkLabelSelection(testLabel, mouseX, mouseY);
+        change = change || checkLabelSelection(classifyLabel, mouseX, mouseY);
+        if (change) {
+            repaint();
+        }
+    }
+
+    private boolean checkLabelSelection(SmartLabel label, int mouseX, int mouseY) {
+        if (label == null) {
+            return false;
+        }
+        boolean onLabel = label.mouseOnLabel(mouseX, mouseY);
+        if (label.selected && !onLabel) {
+            label.setSelected(false);
+            return true;
+        }
+        if (onLabel && !label.selected) {
+            label.setSelected(true);
+            return true;
+        }
+        return false;
+    }
+
+    private void createOptionsLabel() {
+
+        if (FileManager.level == 0) {
+            optionsLabel = new JLabel("(CLICK ON A DATABASE TO BEGIN)");
+            optionsLabel.setForeground(Color.white);
+        } else {
+            optionsLabel = new JLabel("DATASET OPTIONS: ");
+            optionsLabel.setForeground(Color.yellow);
+        }
+
+        optionsLabel.setFont(SmartLabel.mediumLargeFont);
+
+        Dimension size = optionsLabel.getPreferredSize();
+//        int x = (int) (SmartLabel.iconsLeftBuffer + SmartLabel.iconsHozSpace * .5);
+//        int y = SmartLabel.classifierLocY-3;
+        Point loc = new Point(SmartLabel.iconsLeftBuffer, SmartLabel.classifierLocY - 5);
+        optionsLabel.setBounds(loc.x, loc.y, size.width, size.height);
+
+        add(optionsLabel);
+    }
+
+    private void checkIfMouseHoverOnTrash(int mouseX, int mouseY) {
+        checkLabelSelection(trashLabel, mouseX, mouseY);
+    }
 
 }

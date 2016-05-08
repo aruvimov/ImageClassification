@@ -15,14 +15,21 @@ import java.awt.Transparency;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
+import javax.swing.filechooser.FileFilter;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 /**
  *
@@ -30,21 +37,31 @@ import javax.swing.ImageIcon;
  */
 public class FileManager {
 
-    public static File currentDir = new File("src/images");
+    public static File imagesHomeDir = new File("src/images");
+    public static String classifierImagesDir = "src\\classifierImages";
+    public static File currentDir = imagesHomeDir;
     public static int numOfFiles = currentDir.listFiles().length;
-
+    public static File lastOpenedDir = new File("C:\\Nastya\\School\\2016-01_Spring\\THESIS\\database\\ArtStor");
     public static File dataDir = new File("src/data");
+    public static String saveDirPath = "src/jpg";
     public static String imageIconDir = "src/icons";
     public static final String iconMarker = "#####";
+    public static final String combMarker = "+++++";
     public static String emptyImgPath = "src/data/emptyDir.jpg";
     public static String upArrowPath = "src/data/up.png";
     public static String downArrowPath = "src/data/down.png";
-    public static String addArrowPath = "src/data/add.png";
+    public static String trashPath = "src/data/trash.png";
     public static String whitePath = "src/data/white.png";
+    public static String imageSpecificationsPath = "src/data/imageSpecifications.txt";
     public static BufferedImage emptyDirIMG;
     public static int level = 0;
     public static int page = 0;
     public static boolean displayImage = false;
+
+    public final static int CLASSIFIER_NAME = 0;
+    public final static int IMAGE_FORMAT = 1;
+    public final static int IMAGE_WIDTH = 2;
+    public final static int IMAGE_HEIGHT = 3;
 
     public static int lastPage = (int) (currentDir.listFiles().length / SmartLabel.numOfVisibleIcons) + 1;
 
@@ -79,8 +96,6 @@ public class FileManager {
         }
 
         setCurrentDir(newDir);
-
-        System.out.println("nagivate To: currentDir = " + currentDir.getPath());
     }
 
     public static void goUpOneLevel() {
@@ -288,6 +303,15 @@ public class FileManager {
         int i = path.lastIndexOf('.');
         if (i > 0) {
             ext = "." + path.substring(i + 1);
+        }
+        return ext;
+    }
+
+    private static String getImageFormat(String path) {
+        String ext = "";
+        int i = path.lastIndexOf('.');
+        if (i > 0) {
+            ext = path.substring(i + 1);
         }
         return ext;
     }
@@ -532,8 +556,8 @@ public class FileManager {
             labelFile = new File(upArrowPath);
         } else if (labelNum == SmartLabel.DOWN_LABEL) {
             labelFile = new File(downArrowPath);
-        } else { //label = add
-            labelFile = new File(addArrowPath);
+        } else { //label = trash
+            labelFile = new File(trashPath);
         }
         BufferedImage bImg = null;
         try {
@@ -543,9 +567,12 @@ public class FileManager {
         }
 
         int w;
-        if (labelNum == SmartLabel.ADD_LABEL) {
-
-            w = SmartLabel.addWidth;
+        if (labelNum == SmartLabel.TRASH_LABEL) {
+            if (selected) {
+                w = SmartLabel.trashSelectedWidth;
+            } else {
+                w = SmartLabel.trashWidth;
+            }
         } else {
             if (selected) {
                 w = SmartLabel.arrowSelectedWidth;
@@ -562,9 +589,11 @@ public class FileManager {
         String path = FileManager.getIconPath(file);
         java.net.URL imgURL = SmartLabel.class.getResource(path);
         if (imgURL != null) {
+
+            //System.out.println("Found file: " + path);
             return new ImageIcon(imgURL, "description");
         } else {
-            System.err.println("Couldn't find file: " + path);
+            System.err.println("Cound file: " + path);
             return null;
         }
     }
@@ -686,8 +715,8 @@ public class FileManager {
 //        System.out.println("Display Down: There are this many files in the current directory:"+currentDir.listFiles().length);
 //        System.out.println("Display Down: So many have been displayed so far"+(page+1)*SmartLabel.numOfVisibleIcons);
 //        System.out.println("Display Down?:"+((page+1)*SmartLabel.numOfVisibleIcons < currentDir.listFiles().length));
-        int totalShown = (page + 1) * SmartLabel.numOfVisibleIcons;
-        int totalFilesInDir = currentDir.listFiles().length;
+        //int totalShown = (page + 1) * SmartLabel.numOfVisibleIcons;
+        //int totalFilesInDir = currentDir.listFiles().length;
         return (page + 1) * SmartLabel.numOfVisibleIcons < currentDir.listFiles().length;
     }
 
@@ -700,8 +729,8 @@ public class FileManager {
 
     }
 
-   // public static cropNames(File startDir) {
-   // }
+    // public static cropNames(File startDir) {
+    // }
     private static void setCurrentDir(File newDir) {
         currentDir = newDir;
         if (currentDir.isDirectory()) {
@@ -710,8 +739,283 @@ public class FileManager {
             numOfFiles = 1;
         }
         page = 0;
-        lastPage = (int) (currentDir.listFiles().length / SmartLabel.numOfVisibleIcons) + 1;
+        if (currentDir.isDirectory()) {
+            lastPage = (int) (currentDir.listFiles().length / SmartLabel.numOfVisibleIcons) + 1;
+        }
 
+    }
+
+    public static void addFolder() {
+        File userDir = promptUserToAddFolder();
+        if (userDir == null || !userDir.isDirectory()) {
+            return;
+        }
+        saveToSystem(userDir);
+        //create a new folder
+
+    }
+
+    public static void saveToSystem(File userDir) {
+        saveOriginalImages(userDir);
+        saveClassifierImages(userDir);
+        //saveFilesToSystem(userDir, savePath);
+        createIcons(new File(currentDir + "\\" + userDir.getName()), true);
+
+    }
+
+    public static void saveFilesToSystem(File newDir, String savePath, String format, Dimension newSize) {
+        if (newDir.isFile() && isImage(newDir.getName())) {
+            try {
+                //convert to correct format
+                BufferedImage img = ImageIO.read(newDir);
+                if (newSize != null) {
+                    Dimension imgSize = new Dimension(img.getWidth(), img.getHeight());
+                    Dimension targetSize = getScaledDimensionMax(imgSize, newSize);
+                    img = getScaledInstance(img, targetSize);
+                }
+                File saveDir = new File(savePath);
+                if (!saveDir.exists()) {
+                    saveDir.mkdirs();
+                }
+                System.out.println("Saving image to: " + savePath + "\\" + removeExt(newDir.getName()) + "." + format);
+                File saveImg = new File(savePath + "\\" + removeExt(newDir.getName()) + "." + format);
+                if (!saveImg.exists()) {
+                    ImageIO.write(img, format, saveImg);
+                }
+
+            } catch (IOException ex) {
+                Logger.getLogger(FileManager.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        } else {
+            if (newDir.isDirectory()) {
+                for (File subDir : newDir.listFiles()) {
+                    String newSavePath = savePath + "\\" + newDir.getName();
+                    saveFilesToSystem(subDir, newSavePath, format, newSize);
+                }
+            }
+        }
+
+    }
+
+    private static File promptUserToAddFolder() {
+        JFileChooser chooser = new JFileChooser();
+        chooser.setCurrentDirectory(lastOpenedDir);
+        chooser.setDialogTitle("Select a Folder to Import");
+        chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        chooser.setAcceptAllFileFilterUsed(false);
+        if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+            System.out.println("getCurrentDirectory(): " + chooser.getCurrentDirectory());
+            System.out.println("getSelectedFile() : " + chooser.getSelectedFile());
+            lastOpenedDir = chooser.getSelectedFile();
+        } else {
+            System.out.println("No Selection ");
+
+        }
+
+        return chooser.getSelectedFile();
+    }
+
+    private static String getSaveDir(String savePath) {
+        System.out.println("Current Dir: " + currentDir);
+        String currDirPath = currentDir.getPath();
+        System.out.println("CurrentDirPath: " + currDirPath);
+        if (currentDir.isDirectory()) {
+            currDirPath += "\\";
+        }
+        String currPath = currDirPath.split("images")[1];
+        System.out.println("CurrPath: " + currPath);
+        return savePath + currPath;
+    }
+
+    private static void saveOriginalImages(File userDir) {
+        //String imagesHomePath = imagesHomeDir.getPath();
+        String savePath = currentDir.getPath();
+        String format = "jpg";
+        Dimension size = null;
+        saveFilesToSystem(userDir, savePath, format, size);
+    }
+
+    public static void saveClassifierImages(File userDir) {
+        ArrayList<String> imageSpecifications = getImageSpecifications();
+        for (String spec : imageSpecifications) {
+            String[] data = spec.split(",");
+            String format = data[IMAGE_FORMAT];
+            int width = Integer.parseInt(data[IMAGE_WIDTH]);
+            int height = Integer.parseInt(data[IMAGE_HEIGHT]);
+            Dimension size = new Dimension(width, height);
+            String classifierName = data[CLASSIFIER_NAME];
+            String classifierDirPath = classifierImagesDir + "\\" + classifierName;
+            String savePath = getSaveDir(classifierDirPath);
+            saveFilesToSystem(userDir, savePath, format, size);
+
+            //String topClassfCombDir = getTopClassfCombDir(userDir.getPath());
+            //createClassifierCombDirs(new File(topClassfCombDir), classifierDirPath);
+        }
+
+    }
+
+        // System.out.println(""+imageSpecifications);
+    public static String getTopClassfCombDir(String userDirPath) {
+        int fourthDirSplit =  nthIndexOf(userDirPath, '\\', 4);
+        String topPath = userDirPath.substring(0, fourthDirSplit);
+        return topPath;
+    }
+
+    private static ArrayList<String> getImageSpecifications() {
+        ArrayList<String> imageSpecs = new ArrayList<>();
+        FileInputStream fstream;
+        try {
+            fstream = new FileInputStream(imageSpecificationsPath);
+            BufferedReader br = new BufferedReader(new InputStreamReader(fstream));
+
+            String strLine;
+
+//Read File Line By Line
+            while ((strLine = br.readLine()) != null) {
+                // Print the content on the console
+                imageSpecs.add(strLine);
+            }
+//Close the input stream
+            br.close();
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(FileManager.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(FileManager.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return imageSpecs;
+    }
+
+    static void addFiles() {
+        File userDir = promptUserToAddFile();
+        if (userDir == null || !userDir.isFile()) {
+            return;
+        }
+        saveToSystem(userDir);
+    }
+
+    private static File promptUserToAddFile() {
+        JFileChooser chooser = new JFileChooser();
+        //FileNameExtensionFilter filter = new FileNameExtensionFilter("jpg", "jpeg", "png", "tiff");
+        FileFilter imageFilter = new FileNameExtensionFilter("Image files", ImageIO.getReaderFileSuffixes());
+        chooser.setFileFilter(imageFilter);
+        chooser.setCurrentDirectory(lastOpenedDir);
+        chooser.setDialogTitle("Select a File to Import");
+        chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        chooser.setAcceptAllFileFilterUsed(true);
+        if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+            lastOpenedDir = chooser.getSelectedFile();
+            //System.out.println("getCurrentDirectory(): " + chooser.getCurrentDirectory());
+            // System.out.println("getSelectedFile() : " + chooser.getSelectedFile());
+        } else {
+            // System.out.println("No Selection ");
+        }
+
+        return chooser.getSelectedFile();
+    }
+
+    static void deleteCurrentDirectory() {
+        JOptionPane optionPane = new JOptionPane(
+                "Are you sure you would like to delete " + currentDir.getName(),
+                JOptionPane.QUESTION_MESSAGE,
+                JOptionPane.YES_NO_OPTION);
+
+        File orgImage = currentDir;
+        File iconImagePath = new File("src/" + getIconPath(orgImage));
+        File iconDir = new File(iconImagePath.getParent());
+        ArrayList<String> imageSpecs = getImageSpecifications();
+        for (String spec : imageSpecs) {
+            String dirName = spec.split(",")[CLASSIFIER_NAME];
+            String dirPath = classifierImagesDir + "\\" + dirName;
+            String deletePath = dirPath + currentDir.getPath().split("images")[1];
+            File classfDir = new File(deletePath);
+            deleteFile(classfDir);
+        }
+
+        deleteFile(orgImage);
+        deleteFile(iconDir);
+        navigateTo(null);
+        createIcons(currentDir, false);
+    }
+
+    static void deleteFile(File toDelete) {
+        if (toDelete.isFile()) {
+            toDelete.delete();
+        } else {
+            for (File next : toDelete.listFiles()) {
+                deleteFile(next);
+            }
+            toDelete.delete();
+        }
+
+    }
+
+    static void deleteItemFromSystem(File deleteMe) {
+        deleteMe.delete();
+    }
+
+    static ArrayList<File> createClassifierCombDirs(File dir, String topFolderPath) {
+        ArrayList<File> returnMe = new ArrayList<>();
+        if (dir.getName().contains(combMarker)) {
+            return returnMe;
+        }
+        if (dir.isFile()) {
+            if (isImage(dir.getName())) {
+                returnMe.add(dir);
+            }
+            return returnMe;
+        }
+        boolean isClass = false;
+        for (File subDir : dir.listFiles()) {
+            if (!isClass && subDir.isFile()) {
+                isClass = true;
+            }
+            returnMe.addAll(createClassifierCombDirs(subDir, topFolderPath));
+        }
+        boolean isDatabase = (dir.getPath().equals(topFolderPath));
+        if (!isClass && !isDatabase) {
+            String newCombDirPath = topFolderPath + "\\" + combMarker + dir.getName();
+            File newCombDir = new File(newCombDirPath);
+            if (!newCombDir.exists()) {
+                newCombDir.mkdir();
+            }
+            for (File file : returnMe) {
+                try {
+
+                    BufferedImage img = ImageIO.read(file);
+                    String savePath = newCombDir.getPath() + "\\" + file.getName();
+                    File saveDir = new File(savePath);
+                    if (!saveDir.exists()) {
+                        ImageIO.write(img, getImageFormat(file.getName()), saveDir);
+                    }
+                    //File 
+                } catch (IOException ex) {
+                    Logger.getLogger(FileManager.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        }
+        return returnMe;
+
+    }
+
+    private static boolean isDatabase(File dir) {
+        for (File database : imagesHomeDir.listFiles()) {
+            if (database.getPath().equals(dir.getPath())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static int nthIndexOf(String text, char needle, int n) {
+        for (int i = 0; i < text.length(); i++) {
+            if (text.charAt(i) == needle) {
+                n--;
+                if (n == 0) {
+                    return i;
+                }
+            }
+        }
+        return -1;
     }
 
 }

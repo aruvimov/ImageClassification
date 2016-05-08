@@ -16,7 +16,7 @@ GalleryPanel gp;
      */
     public GalleryFrame() {
         initComponents();
-        gp = new GalleryPanel();
+        gp = new GalleryPanel(this);
         getContentPane().add(gp);
         setContentPane(gp);
         pack();
@@ -38,6 +38,10 @@ GalleryPanel gp;
         addFolderMI = new javax.swing.JMenuItem();
         addFilesMI = new javax.swing.JMenuItem();
         jMenu2 = new javax.swing.JMenu();
+        newClassifierMI = new javax.swing.JMenuItem();
+        classifierSettingsMI = new javax.swing.JMenuItem();
+        jMenu1 = new javax.swing.JMenu();
+        resultsSettingsView = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {
@@ -66,15 +70,55 @@ GalleryPanel gp;
 
         addFolderMI.setText("Add Folder...");
         addFolderMI.setPreferredSize(new java.awt.Dimension(130, 22));
+        addFolderMI.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                addFolderMIActionPerformed(evt);
+            }
+        });
         fileMenu.add(addFolderMI);
 
         addFilesMI.setText("Add Files...");
+        addFilesMI.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                addFilesMIActionPerformed(evt);
+            }
+        });
         fileMenu.add(addFilesMI);
 
         jMenuBar1.add(fileMenu);
 
-        jMenu2.setText("Edit");
+        jMenu2.setText("Classifier");
+
+        newClassifierMI.setText("New Classifier");
+        newClassifierMI.setPreferredSize(new java.awt.Dimension(130, 22));
+        newClassifierMI.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                newClassifierMIActionPerformed(evt);
+            }
+        });
+        jMenu2.add(newClassifierMI);
+
+        classifierSettingsMI.setText("Classifier Settings");
+        classifierSettingsMI.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                classifierSettingsMIActionPerformed(evt);
+            }
+        });
+        jMenu2.add(classifierSettingsMI);
+
         jMenuBar1.add(jMenu2);
+
+        jMenu1.setText("Results");
+
+        resultsSettingsView.setText("Results Settings");
+        resultsSettingsView.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                resultsSettingsViewActionPerformed(evt);
+            }
+        });
+        jMenu1.add(resultsSettingsView);
+
+        jMenuBar1.add(jMenu1);
 
         setJMenuBar(jMenuBar1);
 
@@ -113,6 +157,28 @@ GalleryPanel gp;
         addFolderMI.setEnabled(FileManager.getAddFolderEnabled());
         addFilesMI.setEnabled(FileManager.getAddFilesEnabled());
     }//GEN-LAST:event_fileMenuMousePressed
+
+    private void addFolderMIActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addFolderMIActionPerformed
+        FileManager.addFolder();
+        gp.createComponents();
+    }//GEN-LAST:event_addFolderMIActionPerformed
+
+    private void addFilesMIActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addFilesMIActionPerformed
+        FileManager.addFiles();
+        gp.createComponents();
+    }//GEN-LAST:event_addFilesMIActionPerformed
+
+    private void newClassifierMIActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_newClassifierMIActionPerformed
+        createNewClassifier();
+    }//GEN-LAST:event_newClassifierMIActionPerformed
+
+    private void classifierSettingsMIActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_classifierSettingsMIActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_classifierSettingsMIActionPerformed
+
+    private void resultsSettingsViewActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_resultsSettingsViewActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_resultsSettingsViewActionPerformed
 
     /**
      * @param args the command line arguments
@@ -154,8 +220,17 @@ GalleryPanel gp;
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JMenuItem addFilesMI;
     private javax.swing.JMenuItem addFolderMI;
+    private javax.swing.JMenuItem classifierSettingsMI;
     private javax.swing.JMenu fileMenu;
+    private javax.swing.JMenu jMenu1;
     private javax.swing.JMenu jMenu2;
     private javax.swing.JMenuBar jMenuBar1;
+    private javax.swing.JMenuItem newClassifierMI;
+    private javax.swing.JMenuItem resultsSettingsView;
     // End of variables declaration//GEN-END:variables
+
+    private void createNewClassifier() {
+        ClassifierSetupDialog csDialog = new ClassifierSetupDialog(this, true);
+        
+    }
 }
