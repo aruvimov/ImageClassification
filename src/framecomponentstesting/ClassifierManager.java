@@ -411,4 +411,8 @@ public class ClassifierManager {
         return path+ pathFile.getName()+".fit";
     }
 
+    static Result classify(ArrayList<ClassifyData> classifyDataList, String imagePath, File startDir) {
+        return new Result(classifyDataList, imagePath, startDir);
+    }
+
 }

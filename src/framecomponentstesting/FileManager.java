@@ -21,6 +21,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
@@ -63,6 +65,7 @@ public class FileManager {
     public final static int IMAGE_HEIGHT = 3;
 
     public static int lastPage = (int) (currentDir.listFiles().length / SmartLabel.numOfVisibleIcons) + 1;
+
 
     public static void init() {
         try {
@@ -283,13 +286,16 @@ public class FileManager {
 
     }
 
-    private static boolean isImage(String name) {
+    public static boolean isImage(String name) {
         //System.out.println("Is this an image? Name: " + name);
         if (name.contains(iconMarker)) {
             return false;
         }
         String imageExtensions = ".tiff .png .jpeg .jpg";
         String ext = getExtension(name);
+//        if (ext.equals("")) {
+//            return false;
+//        }
         if (imageExtensions.contains(ext)) {
             return true;
         }
@@ -297,7 +303,7 @@ public class FileManager {
         return false;
     }
 
-    private static String getExtension(String path) {
+     static String getExtension(String path) {
         String ext = "";
         int i = path.lastIndexOf('.');
         if (i > 0) {
@@ -662,6 +668,9 @@ public class FileManager {
                     newName = newName.split("Title")[1];
                     newName = newName.split("<td class=\"column_2\" >\t\t    ")[1];
                     newName = newName.split("\t</td>")[0];
+                    if (newName.length()>35) {
+                        newName = newName.substring(0, 35);
+                    }
                     System.out.println("Title: " + newName);
 
                     String oldImagePath = removeExt(currDir.getPath()) + ".jpg";
@@ -1042,5 +1051,6 @@ public class FileManager {
         String classifierDirPath = classifierImagesDir + "\\" + classifierName;
         return getSaveDir(classifierDirPath);
     }
-
+    
+ 
 }

@@ -6,12 +6,16 @@
 package framecomponentstesting;
 
 import static framecomponentstesting.ClassifierSetupDialog.blueBoxHeight;
+import static framecomponentstesting.ClassifierSetupDialog.regularFont;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.RenderingHints;
+import static java.awt.RenderingHints.VALUE_INTERPOLATION_BILINEAR;
+import java.util.ArrayList;
 
 /**
  *
@@ -33,6 +37,7 @@ public class Painter {
     public static final int classifierBorderStrokeThickness = 3;
     public static final int borderXBuffer = 5;
     public static final int borderYBuffer = 3;
+    public static final int resultsVerLineStroke=3;
 
     public static int titleLetterWidth = 5; //font-based
     public static int titleHeight = 10; //font-based
@@ -161,10 +166,79 @@ public class Painter {
     static void paintRect(Graphics panelG, Color c, int x, int y, int w, int h) {
         Graphics2D panelG2 = (Graphics2D) panelG;
         // panelG2.setStroke(new BasicStroke(selectStrokeThickness));
-        int imageFrameBuffer=ClassifyImageFrame.imageFrameBuffer;
+        int imageFrameBuffer = ClassifyImageFrame.imageFrameBuffer;
         panelG2.setColor(c);
-        panelG2.fillRect(x-imageFrameBuffer, y-imageFrameBuffer, 
-                w+imageFrameBuffer*2, h+imageFrameBuffer*2);
+        panelG2.fillRect(x - imageFrameBuffer, y - imageFrameBuffer,
+                w + imageFrameBuffer * 2, h + imageFrameBuffer * 2);
+    }
+
+    static void paintFormatted(Graphics panelG, String[] ss) {
+        for (int i = 0; i < ss.length; i++) {
+            panelG.drawString(ss[i], 50 + i * 20, 50 + i * 20);
+        }
+    }
+//String returnMe = "";
+//        String format = "%" + buffer + "s";
+//        returnMe+= String.format(format+" %32\n", dirName, getHighest());
+//        int newBuffer = buffer + 4;
+//        if (children == null) {
+//            return returnMe;
+//        }
+//        for (Result child : children) {
+//            returnMe += child.toString(newBuffer);
+//        }
+//        return returnMe;
+    static int leftBuffer = 15;
+    static int topBuffer = 30;
+    static int col0 = leftBuffer+220;
+    static int colSpace = 150;
+    static int hozSpace = 40;
+    static int verSpace = 18;
+    static int verLineBuffer=3;
+    static int hozBuffer=20;
+   
+    static int currY=0;
+    static void paintResult(Graphics g, Result result, int x) {
+        currY=currY+verSpace;
+        g.setColor(getResultColor(x));
+        g.setFont(regularFont);
+        g.drawString(result.getDirName().toUpperCase(), x, currY);
+        double[] highestList = result.getHighestList();
+        for (int i = 0; i < highestList.length; i++) {
+//            int high = highestList[i];
+            g.drawString("" + highestList[i], col0+colSpace*(i), currY);
+        }
+        
+        g.drawLine(0, currY+verLineBuffer, 1000, currY+verLineBuffer);
+        ArrayList<Result> children = result.getChildren();
+        if (children != null) {
+            for (int i = 0; i < children.size(); i++) {
+                //y+=yBuffer*i;
+                paintResult(g, children.get(i), x + hozSpace);
+            }
+        }
+    }
+
+    static void resetCurrY() {
+        currY=topBuffer;
+    }
+    
+    static Color getResultColor(int x) {
+        Color c = Color.black;
+        if (x==leftBuffer) {
+            c = Color.orange;
+        } if (x==leftBuffer+hozSpace) {
+            c = Color.red;
+        }
+        return c;
+    }
+
+    static void paintVerticalLines(Graphics g) {
+        Graphics2D g2 = (Graphics2D) g;
+        g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, VALUE_INTERPOLATION_BILINEAR);
+        g2.setStroke(new BasicStroke(resultsVerLineStroke));
+        int colX = col0;
+        g2.drawLine(colX-hozBuffer, topBuffer, colX-hozBuffer, 1000);
     }
 
 }

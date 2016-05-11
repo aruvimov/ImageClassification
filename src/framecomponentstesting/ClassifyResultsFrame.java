@@ -5,38 +5,34 @@
  */
 package framecomponentstesting;
 
-import static framecomponentstesting.ClassifierSetupDialog.blueBox1Y;
 import java.awt.Dimension;
-import java.awt.Graphics;
-import java.util.ArrayList;
+import javax.swing.JFrame;
+import javax.swing.JScrollPane;
 
 /**
  *
  * @author Alisa
  */
-public class ClassifyImageFrame extends javax.swing.JFrame {
-    
+public class ClassifyResultsFrame extends javax.swing.JFrame {
 
-     ClassifyImagePanel panel;
-    public static Dimension panelSize = new Dimension(600, 660);
-    
-    static int imageFrameBuffer=10;
-    public static int mainImgWidth = 200;
-    public static int mainImgHeight = 200;
+    public static Dimension panelSize = new Dimension(500, 660);
+
     /**
-     * Creates new form ClassifyImageFrame
+     * Creates new form ClassifyResultsFrame
      */
-    public ClassifyImageFrame() {
-        initComponents();
+    public ClassifyResultsFrame() {
+        
     }
-    public ClassifyImageFrame(ArrayList<ClassifyData> classifyDataList, String imagePath) {
+    public ClassifyResultsFrame(Result result) {
         initComponents();
-        panel = new ClassifyImagePanel(this, classifyDataList, imagePath);
-        setTitle("Image Classification");
-        getContentPane().add(panel);
-        setContentPane(panel);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        JScrollPane pane = new JScrollPane(new ClassifyResultsPanel(result));
+        setTitle("Results");
+        setLocation(ClassifyImageFrame.panelSize.width,0);
+        setPreferredSize(panelSize);
+        getContentPane().add(pane);
+        setContentPane(pane);
         pack();
-        this.toFront();
         setVisible(true);
     }
 
@@ -82,27 +78,24 @@ public class ClassifyImageFrame extends javax.swing.JFrame {
                 }
             }
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(ClassifyImageFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(ClassifyResultsFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(ClassifyImageFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(ClassifyResultsFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(ClassifyImageFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(ClassifyResultsFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(ClassifyImageFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(ClassifyResultsFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new ClassifyImageFrame().setVisible(true);
+                new ClassifyResultsFrame().setVisible(true);
             }
         });
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     // End of variables declaration//GEN-END:variables
-
-   
-
 }

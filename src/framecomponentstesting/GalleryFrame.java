@@ -20,6 +20,7 @@ public class GalleryFrame extends javax.swing.JFrame {
      */
     public GalleryFrame() {
         initComponents();
+        
         gp = new GalleryPanel(this);
         getContentPane().add(gp);
         setContentPane(gp);

@@ -37,10 +37,11 @@ public class ClassifyImagePanel extends javax.swing.JPanel {
     static Dimension panelSize = ClassifyImageFrame.panelSize;
     ArrayList<ClassifyData> classifyDataList;
     String imagePath;
-    int imageLocY = title2LocY+subTitleBuffer;
-    int bestGuessesY = imageLocY+mainImgHeight+30;
+    int imageLocY = title2LocY + subTitleBuffer;
+    int bestGuessesY = imageLocY + mainImgHeight + 30;
     int imageWidth = 0;
     int imageHeight = 0;
+    Result result;
 
     /**
      * Creates new form ClassifyImagePanel
@@ -49,7 +50,8 @@ public class ClassifyImagePanel extends javax.swing.JPanel {
         initComponents();
         this.frame = frame;
         this.imagePath = imagePath;
-        this.classifyDataList=classifyDataList;
+        this.classifyDataList = classifyDataList;
+        classify();
         setBackground(Color.white);
         setPreferredSize(panelSize);
         createComponents();
@@ -93,10 +95,13 @@ public class ClassifyImagePanel extends javax.swing.JPanel {
         createStepTitle();
         createImageTitle();
         createImage();
+        //createCompareImages();
         createBestGuesses();
+        createResultsPanel();
         //createConfirmButtons();
         repaint();
     }
+
     private void createStepTitle() {
         JLabel titleLabel = new JLabel("CLASSIFICATION RESULTS");
         titleLabel.setBounds(leftBuffer, stepTitleLocY, 200, 20);
@@ -108,6 +113,7 @@ public class ClassifyImagePanel extends javax.swing.JPanel {
         titleLabel.setBounds(leftBuffer, title2LocY + titleBoxBuffer, 200, 20);
         add(formatLabel(titleLabel, WHITE_TITLE_LABEL));
     }
+
     private void createImage() {
         JLabel imageLabel = new JLabel();
         Icon icon = FileManager.createClassifyIconImage(new File(imagePath));
@@ -117,9 +123,8 @@ public class ClassifyImagePanel extends javax.swing.JPanel {
         imageHeight = icon.getIconHeight();
         imageLabel.setBounds(leftBuffer, y, imageWidth, imageHeight);
         add(imageLabel);
-       
+
     }
-    
 
     private String getImageName() {
         File img = new File(imagePath);
@@ -127,18 +132,36 @@ public class ClassifyImagePanel extends javax.swing.JPanel {
     }
 
     private void createBestGuesses() {
-        int count=0;
+        int count = 0;
         int y = bestGuessesY;
-        int lineSpace = 60;
+        int lineSpace = 40;
         for (ClassifyData datum : classifyDataList) {
-            JLabel label = new JLabel((count+1)+") "+datum.classifierName.toUpperCase()+"{"+datum.options+"}");
-            label.setBounds(leftBuffer, y+lineSpace*count, 50,50);
+            String options = "{" + datum.options + "}";
+            if (datum.options==null) {
+                options="";
+            } 
+            JLabel label = new JLabel((count + 1) + ") " + datum.classifierName.toUpperCase() + options);
+            label.setBounds(leftBuffer, y + lineSpace *2* count, 50, 50);
             add(formatLabel(label, SUB_TITLE_LABEL));
-            
+
+           // result.getBestGuesses()
+            Result.setSortOn(count);
+            JLabel guessLabel = new JLabel("   "+result.bestGuess());
+            guessLabel.setBounds(leftBuffer, y+lineSpace+lineSpace *2* count, 50, 50);
+            add(formatLabel(guessLabel, SUB_TITLE_LABEL));
             //JButton button = new
-            
             count++;
         }
+    }
+
+    private void createResultsPanel() {
+        
+        new ClassifyResultsFrame(result);
+    }
+
+    private void classify() {
+         result = ClassifierManager.classify(classifyDataList, 
+                imagePath, FileManager.currentDir);
     }
 
 }
