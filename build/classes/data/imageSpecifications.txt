@@ -1,0 +1,2 @@
+classifier1,jpg,300,300
+classifier2,jpg,500,500

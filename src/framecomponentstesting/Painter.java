@@ -5,6 +5,7 @@
  */
 package framecomponentstesting;
 
+import static framecomponentstesting.ClassifierSetupDialog.blueBoxHeight;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -114,26 +115,56 @@ public class Painter {
         //panelG2.drawLine(0, y+h, 1000, y+h);
     }
 
-    static void paintBlueClassifierTopRect(Graphics panelG) {
-        int w = ClassifierSetupPanel.panelSize.width; //larger than screen
-        int h = (ClassifierSetupPanel.instructionsY2 - ClassifierSetupPanel.instructionsY1);//larger than screen
+//    static void paintBlueClassifierTopRect(Graphics panelG) {
+//        int w = ClassifierSetupDialog.panelSize.width; //larger than screen
+//        int h = (ClassifierSetupDialog.instructionsY2 - ClassifierSetupDialog.instructionsY1);//larger than screen
+//        int x = 0;
+//        int y = ClassifierSetupDialog.instructionsY1;
+//        Graphics2D panelG2 = (Graphics2D) panelG;
+//        // panelG2.setStroke(new BasicStroke(selectStrokeThickness));
+//        panelG2.setColor(backgroundColor);
+//        panelG2.fillRect(x, y, w, h);
+//    }
+    static void paintBlueClassifierBottomRect(Graphics panelG) {
+        int w = 2000; //larger than screen
+        int h = 500;//larger than screen
         int x = 0;
-        int y = ClassifierSetupPanel.instructionsY1;
+        int y = ClassifierSetupDialog.bottomRectY1;
         Graphics2D panelG2 = (Graphics2D) panelG;
         // panelG2.setStroke(new BasicStroke(selectStrokeThickness));
         panelG2.setColor(backgroundColor);
         panelG2.fillRect(x, y, w, h);
     }
 
-    static void paintBlueClassifierBottomRect(Graphics panelG) {
-        int w = ClassifierSetupPanel.panelSize.width; //larger than screen
-        int h = 500;//larger than screen
+    static void paintBlueClassifierRect(Graphics panelG, int blueBox1Y) {
+        int w = 2000; //larger than screen
+        int h = blueBoxHeight;
         int x = 0;
-        int y = ClassifierSetupPanel.bottomRectY1;
+        int y = blueBox1Y;
         Graphics2D panelG2 = (Graphics2D) panelG;
         // panelG2.setStroke(new BasicStroke(selectStrokeThickness));
         panelG2.setColor(backgroundColor);
         panelG2.fillRect(x, y, w, h);
+    }
+
+    static void paintBlueClassifierTopRect(Graphics panelG) {
+        int w = 2000; //larger than screen
+        int h = blueBoxHeight;
+        int x = 0;
+        int y = 0;
+        Graphics2D panelG2 = (Graphics2D) panelG;
+        // panelG2.setStroke(new BasicStroke(selectStrokeThickness));
+        panelG2.setColor(backgroundColor);
+        panelG2.fillRect(x, y, w, h);
+    }
+
+    static void paintRect(Graphics panelG, Color c, int x, int y, int w, int h) {
+        Graphics2D panelG2 = (Graphics2D) panelG;
+        // panelG2.setStroke(new BasicStroke(selectStrokeThickness));
+        int imageFrameBuffer=ClassifyImageFrame.imageFrameBuffer;
+        panelG2.setColor(c);
+        panelG2.fillRect(x-imageFrameBuffer, y-imageFrameBuffer, 
+                w+imageFrameBuffer*2, h+imageFrameBuffer*2);
     }
 
 }

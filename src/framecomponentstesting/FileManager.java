@@ -24,7 +24,6 @@ import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
-import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
@@ -478,6 +477,23 @@ public class FileManager {
         return new ImageIcon(bImg);
 
     }
+    public static ImageIcon createClassifyIconImage(File linkedFile) {
+        BufferedImage bImg = null;
+        try {
+            bImg = ImageIO.read(linkedFile);
+        } catch (IOException ex) {
+            Logger.getLogger(FileManager.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        Dimension imageDim = new Dimension(bImg.getWidth(), bImg.getHeight());
+        int targetWidth = ClassifyImageFrame.mainImgWidth;
+        int targetHeight = ClassifyImageFrame.mainImgHeight;
+        Dimension targetDim = new Dimension(targetWidth, targetHeight);
+        Dimension newSize = getScaledDimensionMax(imageDim, targetDim);
+        bImg = getScaledInstance(bImg, newSize);
+        return new ImageIcon(bImg);
+
+    }
+
 
     public static BufferedImage resizeIcon(BufferedImage img) {
         if (img == null) {
@@ -886,20 +902,20 @@ public class FileManager {
     }
 
     static void addFiles() {
-        File userDir = promptUserToAddFile();
+        File userDir = promptUserToAddFile("Select an Image to Import");
         if (userDir == null || !userDir.isFile()) {
             return;
         }
         saveToSystem(userDir);
     }
 
-    private static File promptUserToAddFile() {
+     static File promptUserToAddFile(String title) {
         JFileChooser chooser = new JFileChooser();
         //FileNameExtensionFilter filter = new FileNameExtensionFilter("jpg", "jpeg", "png", "tiff");
         FileFilter imageFilter = new FileNameExtensionFilter("Image files", ImageIO.getReaderFileSuffixes());
         chooser.setFileFilter(imageFilter);
         chooser.setCurrentDirectory(lastOpenedDir);
-        chooser.setDialogTitle("Select a File to Import");
+        chooser.setDialogTitle(title);
         chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
         chooser.setAcceptAllFileFilterUsed(true);
         if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
@@ -1016,6 +1032,15 @@ public class FileManager {
             }
         }
         return -1;
+    }
+    
+    public static void writeToTextFile(String path, String text) {
+        
+    }
+
+    static String getDataset(String classifierName) {
+        String classifierDirPath = classifierImagesDir + "\\" + classifierName;
+        return getSaveDir(classifierDirPath);
     }
 
 }

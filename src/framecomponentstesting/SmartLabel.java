@@ -36,10 +36,13 @@ public class SmartLabel extends JLabel {
     static final int titleFontSize = 48;
     static final int mediumFontSize = 24;
     static final int mediumLargeFontSize = 36;
+    static final int tinyFontSize = 14;
     static final Font titleFont = new Font("Tw Cen MT Condensed", 1, titleFontSize);
     static final Font smallFont = new Font("Tw Cen MT Condensed", 1, smallFontSize);
     static final Font mediumFont = new Font("Tw Cen MT Condensed", 1, mediumFontSize);
     static final Font mediumLargeFont = new Font("Tw Cen MT Condensed", 1, mediumLargeFontSize);
+    static final Font tinyFont = new Font("Tw Cen MT Condensed", 1, tinyFontSize);
+
 
     //item is shown as selected if mouse is within this distance
     final int mouseBuffer = 3;

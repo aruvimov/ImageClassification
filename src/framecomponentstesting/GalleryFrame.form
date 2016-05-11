@@ -53,12 +53,12 @@
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="newClassifierMIActionPerformed"/>
               </Events>
             </MenuItem>
-            <MenuItem class="javax.swing.JMenuItem" name="classifierSettingsMI">
+            <MenuItem class="javax.swing.JMenuItem" name="editClassifierMI">
               <Properties>
-                <Property name="text" type="java.lang.String" value="Classifier Settings"/>
+                <Property name="text" type="java.lang.String" value="Edit Classifier..."/>
               </Properties>
               <Events>
-                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="classifierSettingsMIActionPerformed"/>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="editClassifierMIActionPerformed"/>
               </Events>
             </MenuItem>
           </SubComponents>

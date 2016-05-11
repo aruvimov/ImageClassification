@@ -5,12 +5,16 @@
  */
 package framecomponentstesting;
 
+import javax.swing.JOptionPane;
+
 /**
  *
  * @author Alisa
  */
 public class GalleryFrame extends javax.swing.JFrame {
-GalleryPanel gp;
+
+    GalleryPanel gp;
+
     /**
      * Creates new form galleryFrame
      */
@@ -39,7 +43,7 @@ GalleryPanel gp;
         addFilesMI = new javax.swing.JMenuItem();
         jMenu2 = new javax.swing.JMenu();
         newClassifierMI = new javax.swing.JMenuItem();
-        classifierSettingsMI = new javax.swing.JMenuItem();
+        editClassifierMI = new javax.swing.JMenuItem();
         jMenu1 = new javax.swing.JMenu();
         resultsSettingsView = new javax.swing.JMenuItem();
 
@@ -98,13 +102,13 @@ GalleryPanel gp;
         });
         jMenu2.add(newClassifierMI);
 
-        classifierSettingsMI.setText("Classifier Settings");
-        classifierSettingsMI.addActionListener(new java.awt.event.ActionListener() {
+        editClassifierMI.setText("Edit Classifier...");
+        editClassifierMI.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                classifierSettingsMIActionPerformed(evt);
+                editClassifierMIActionPerformed(evt);
             }
         });
-        jMenu2.add(classifierSettingsMI);
+        jMenu2.add(editClassifierMI);
 
         jMenuBar1.add(jMenu2);
 
@@ -149,7 +153,7 @@ GalleryPanel gp;
     }//GEN-LAST:event_formMouseMoved
 
     private void fileMenuActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fileMenuActionPerformed
-        
+
     }//GEN-LAST:event_fileMenuActionPerformed
 
     private void fileMenuMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_fileMenuMousePressed
@@ -172,9 +176,9 @@ GalleryPanel gp;
         createNewClassifier();
     }//GEN-LAST:event_newClassifierMIActionPerformed
 
-    private void classifierSettingsMIActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_classifierSettingsMIActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_classifierSettingsMIActionPerformed
+    private void editClassifierMIActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_editClassifierMIActionPerformed
+        editClassifier();
+    }//GEN-LAST:event_editClassifierMIActionPerformed
 
     private void resultsSettingsViewActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_resultsSettingsViewActionPerformed
         // TODO add your handling code here:
@@ -220,7 +224,7 @@ GalleryPanel gp;
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JMenuItem addFilesMI;
     private javax.swing.JMenuItem addFolderMI;
-    private javax.swing.JMenuItem classifierSettingsMI;
+    private javax.swing.JMenuItem editClassifierMI;
     private javax.swing.JMenu fileMenu;
     private javax.swing.JMenu jMenu1;
     private javax.swing.JMenu jMenu2;
@@ -231,6 +235,23 @@ GalleryPanel gp;
 
     private void createNewClassifier() {
         ClassifierSetupDialog csDialog = new ClassifierSetupDialog(this, true);
-        
+
+    }
+
+    private void editClassifier() {
+        String[] classifiers = ClassifierManager.getClassifierList();
+        String classifierName = promptUserForClassifier(classifiers);
+        ClassifierSetupDialog csDialog = new ClassifierSetupDialog(this, true, classifierName);
+    }
+
+    private String promptUserForClassifier(String[] classifiers) {
+        String selected_classifier = (String) JOptionPane.showInputDialog(this,
+                "Which classifier would you like to edit?",
+                "Edit Classifier",
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                classifiers,
+                classifiers[0]);
+        return selected_classifier;
     }
 }

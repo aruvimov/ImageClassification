@@ -5,11 +5,17 @@
         <group>
             <file>file:/C:/Users/Alisa/Documents/NetBeansProjects/FrameComponentsTesting/src/framecomponentstesting/FileManager.java</file>
             <file>file:/C:/Users/Alisa/Documents/NetBeansProjects/FrameComponentsTesting/src/framecomponentstesting/FrameComponentsTesting.java</file>
+            <file>file:/C:/Users/Alisa/Documents/NetBeansProjects/FrameComponentsTesting/src/framecomponentstesting/ClassifyImagePanel.java</file>
+            <file>file:/C:/Users/Alisa/Documents/NetBeansProjects/FrameComponentsTesting/src/framecomponentstesting/ConfigPanel.java</file>
+            <file>file:/C:/Users/Alisa/Documents/NetBeansProjects/FrameComponentsTesting/src/framecomponentstesting/ClassifierManager.java</file>
+            <file>file:/C:/Users/Alisa/Documents/NetBeansProjects/FrameComponentsTesting/src/framecomponentstesting/ClassifyData.java</file>
+            <file>file:/C:/Users/Alisa/Documents/NetBeansProjects/FrameComponentsTesting/src/framecomponentstesting/Result.java</file>
+            <file>file:/C:/Users/Alisa/Documents/NetBeansProjects/FrameComponentsTesting/src/framecomponentstesting/ClassifierSetupDialog.java</file>
             <file>file:/C:/Users/Alisa/Documents/NetBeansProjects/FrameComponentsTesting/src/framecomponentstesting/Painter.java</file>
+            <file>file:/C:/Users/Alisa/Documents/NetBeansProjects/FrameComponentsTesting/src/framecomponentstesting/ClassifierSetupPanelStep2.java</file>
+            <file>file:/C:/Users/Alisa/Documents/NetBeansProjects/FrameComponentsTesting/src/framecomponentstesting/ClassifyImageFrame.java</file>
             <file>file:/C:/Users/Alisa/Documents/NetBeansProjects/FrameComponentsTesting/src/framecomponentstesting/SmartLabel.java</file>
-            <file>file:/C:/Users/Alisa/Documents/NetBeansProjects/FrameComponentsTesting/src/framecomponentstesting/Globals.java</file>
             <file>file:/C:/Users/Alisa/Documents/NetBeansProjects/FrameComponentsTesting/src/framecomponentstesting/GalleryPanel.java</file>
-            <file>file:/C:/Users/Alisa/Documents/NetBeansProjects/FrameComponentsTesting/src/framecomponentstesting/GalleryFrame.java</file>
         </group>
     </open-files>
 </project-private>

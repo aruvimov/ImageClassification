@@ -150,6 +150,7 @@ public class GalleryPanel extends javax.swing.JPanel {
         checkIfMousePressOnIcon(mouseX, mouseY);
         checkIfMousePressOnReturn(mouseX, mouseY);
         checkIfMousePressOnFunction(mouseX, mouseY);
+        checkIfMousePressOnClassifier(mouseX, mouseY);
         checkIfMousePressOnTrash(mouseX, mouseY);
 
     }
@@ -522,6 +523,29 @@ public class GalleryPanel extends javax.swing.JPanel {
 
     private void checkIfMouseHoverOnTrash(int mouseX, int mouseY) {
         checkLabelSelection(trashLabel, mouseX, mouseY);
+    }
+
+    private void checkIfMousePressOnClassifier(int mouseX, int mouseY) {
+        if (checkLabelSelection(trainLabel, mouseX, mouseY)) {
+            train();
+        }else if (checkLabelSelection(testLabel, mouseX, mouseY)) {
+            test();
+        } else if (checkLabelSelection(classifyLabel, mouseX, mouseY)) {
+            classify();
+        }
+        
+    }
+
+    private void train() {
+    }
+
+    private void test() {
+    }
+
+    private void classify() {
+        
+        
+        ConfigDialog dialog = new ConfigDialog(frame, true);
     }
 
 }
